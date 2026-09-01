@@ -1,0 +1,232 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum AccountType {
+  COUPLE
+  PLANNER
+  ADMIN
+}
+
+enum WeddingMemberRole {
+  OWNER
+  MANAGER
+  ADMIN
+}
+
+enum WeddingStatus {
+  DRAFT
+  PUBLISHED
+  COMPLETED
+}
+
+enum WeddingPlan {
+  INFORMATIVE
+  FULL
+}
+
+enum RsvpStatus {
+  PENDING
+  ATTENDING
+  NOT_ATTENDING
+}
+
+enum RsvpQuestionType {
+  TEXT
+  SINGLE_CHOICE
+  MULTIPLE_CHOICE
+  BOOLEAN
+}
+
+model User {
+  id          String      @id @default(uuid()) @db.Uuid
+  name        String
+  email       String      @unique
+  accountType AccountType
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  weddingMembers WeddingMember[]
+
+  @@map("users")
+}
+
+model Wedding {
+  id          String        @id @default(uuid()) @db.Uuid
+  name        String
+  slug        String        @unique
+  weddingDate DateTime
+  status      WeddingStatus @default(DRAFT)
+  plan        WeddingPlan   @default(FULL)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  members       WeddingMember[]
+  guestGroups   GuestGroup[]
+  guests        Guest[]
+  rsvpQuestions RsvpQuestion[]
+  gifts         Gift[]
+  events        Event[]
+  media         Media[]
+
+  @@map("weddings")
+}
+
+model WeddingMember {
+  id        String            @id @default(uuid()) @db.Uuid
+  userId    String            @db.Uuid
+  weddingId String            @db.Uuid
+  role      WeddingMemberRole
+  createdAt DateTime          @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  wedding Wedding @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, weddingId])
+  @@index([userId])
+  @@index([weddingId])
+  @@map("wedding_members")
+}
+
+model GuestGroup {
+  id        String   @id @default(uuid()) @db.Uuid
+  weddingId String   @db.Uuid
+  name      String
+  createdAt DateTime @default(now())
+
+  wedding Wedding @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+  guests  Guest[]
+
+  @@index([weddingId])
+  @@map("guest_groups")
+}
+
+model Guest {
+  id        String   @id @default(uuid()) @db.Uuid
+  weddingId String   @db.Uuid
+  groupId   String?  @db.Uuid
+  firstName String
+  lastName  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  wedding Wedding     @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+  group   GuestGroup? @relation(fields: [groupId], references: [id], onDelete: SetNull)
+  rsvp    Rsvp?
+
+  @@index([weddingId])
+  @@index([groupId])
+  @@index([weddingId, lastName, firstName])
+  @@map("guests")
+}
+
+model Rsvp {
+  id          String     @id @default(uuid()) @db.Uuid
+  guestId     String     @unique @db.Uuid
+  status      RsvpStatus @default(PENDING)
+  respondedAt DateTime?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  guest   Guest        @relation(fields: [guestId], references: [id], onDelete: Cascade)
+  answers RsvpAnswer[]
+
+  @@map("rsvps")
+}
+
+model RsvpQuestion {
+  id        String           @id @default(uuid()) @db.Uuid
+  weddingId String           @db.Uuid
+  question  String
+  type      RsvpQuestionType
+  required  Boolean          @default(false)
+  options   Json?
+  sortOrder Int              @default(0)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  wedding Wedding      @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+  answers RsvpAnswer[]
+
+  @@index([weddingId])
+  @@index([weddingId, sortOrder])
+  @@map("rsvp_questions")
+}
+
+model RsvpAnswer {
+  id         String   @id @default(uuid()) @db.Uuid
+  rsvpId     String   @db.Uuid
+  questionId String   @db.Uuid
+  answer     Json
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  rsvp     Rsvp         @relation(fields: [rsvpId], references: [id], onDelete: Cascade)
+  question RsvpQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([rsvpId, questionId])
+  @@index([rsvpId])
+  @@index([questionId])
+  @@map("rsvp_answers")
+}
+
+model Gift {
+  id          String   @id @default(uuid()) @db.Uuid
+  weddingId   String   @db.Uuid
+  name        String
+  description String?
+  image       String?
+  externalUrl String?
+  paymentUrl  String?
+  sortOrder   Int      @default(0)
+  isVisible   Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  wedding Wedding @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+
+  @@index([weddingId])
+  @@index([weddingId, sortOrder])
+  @@map("gifts")
+}
+
+model Event {
+  id        String   @id @default(uuid()) @db.Uuid
+  weddingId String   @db.Uuid
+  name      String
+  date      DateTime
+  time      String?
+  location  String?
+  address   String?
+  mapsUrl   String?
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  wedding Wedding @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+
+  @@index([weddingId])
+  @@index([weddingId, sortOrder])
+  @@map("events")
+}
+
+model Media {
+  id        String   @id @default(uuid()) @db.Uuid
+  weddingId String   @db.Uuid
+  path      String
+  type      String
+  alt       String?
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+
+  wedding Wedding @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+
+  @@index([weddingId])
+  @@index([weddingId, sortOrder])
+  @@map("media")
+}

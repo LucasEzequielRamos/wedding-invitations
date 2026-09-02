@@ -1,0 +1,3 @@
+// requireAuthenticatedUser()
+// requireWeddingAccess()
+// requireWeddingRole()

@@ -6,10 +6,10 @@ export default function NewWeddingPage() {
     "use server";
 
     const wedding = await createWedding({
-      name: "Boda de prueba 2",
-      slug: "boda-de-prueba-2",
+      name: "Boda de prueba 4",
+      slug: "boda-de-prueba-4",
       weddingDate: new Date("2027-05-15"),
-      plan: "FULL",
+      plan: "INFORMATIVE",
     });
 
     redirect(`/dashboard/weddings/${wedding.id}`);

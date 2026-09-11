@@ -1,8 +1,10 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+import { SectionEditor } from "@/features/invitations/components/section-editor";
 
 type Section = {
   id: string;
@@ -37,6 +39,37 @@ export default function InvitationSectionsPage() {
   const [sections, setSections] = useState<Section[]>([]);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
+  const [editingSectionId, setEditingSectionId] = useState<string | null>(null);
+  const [slug, setSlug] = useState("");
+  const [media, setMedia] = useState<any[]>([]);
+
+  async function loadWedding() {
+    try {
+      const response = await fetch(`/api/dashboard/weddings/${weddingId}`);
+
+      if (!response.ok) {
+        throw new Error("No se pudo cargar la boda");
+      }
+
+      const data = await response.json();
+
+      setSlug(data.slug);
+    } catch (error) {
+      setMessage(
+        error instanceof Error ? error.message : "Error al cargar la boda",
+      );
+    }
+  }
+
+  async function loadMedia() {
+    const response = await fetch(`/api/dashboard/weddings/${weddingId}/media`);
+
+    if (!response.ok) return;
+
+    const data = await response.json();
+
+    setMedia(data);
+  }
 
   async function loadSections() {
     try {
@@ -60,9 +93,50 @@ export default function InvitationSectionsPage() {
 
   useEffect(() => {
     loadSections();
+    loadMedia();
+    loadWedding();
   }, [weddingId]);
 
   async function addSection(type: string) {
+    let config: Record<string, unknown> | null = null;
+
+    switch (type) {
+      case "ILLUSTRATION":
+        config = {
+          variant: "floral-divider",
+          mediaId: "",
+        };
+        break;
+
+      case "CUSTOM":
+        config = {
+          variant: "romantic-floral",
+          media: {
+            top: "",
+            bottom: "",
+          },
+        };
+        break;
+
+      case "TEXT":
+        config = {
+          text: "",
+          align: "center",
+        };
+        break;
+
+      case "QUOTE":
+        config = {
+          text: "",
+          author: "",
+        };
+        break;
+
+      default:
+        config = {};
+        break;
+    }
+
     const response = await fetch(
       `/api/dashboard/weddings/${weddingId}/sections`,
       {
@@ -73,7 +147,7 @@ export default function InvitationSectionsPage() {
         body: JSON.stringify({
           type,
           enabled: true,
-          config: null,
+          config,
         }),
       },
     );
@@ -86,7 +160,11 @@ export default function InvitationSectionsPage() {
       return;
     }
 
+    const created = await response.json();
+
     await loadSections();
+
+    setEditingSectionId(created.id);
   }
 
   async function toggleSection(section: Section) {
@@ -171,12 +249,27 @@ export default function InvitationSectionsPage() {
 
   return (
     <main className="mx-auto max-w-5xl space-y-8 p-6">
-      <div>
-        <h1 className="text-3xl font-bold">Secciones de la invitación</h1>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold">Secciones de la invitación</h1>
 
-        <p className="mt-2 text-sm text-gray-500">
-          Definí la estructura y el orden de la invitación.
-        </p>
+          <p className="mt-2 text-sm text-gray-500">
+            Definí la estructura y el orden de la invitación.
+          </p>
+        </div>
+
+        <button
+          type="button"
+          disabled={!slug}
+          onClick={() => {
+            if (!slug) return;
+
+            window.open(`/invitacion/${slug}`, "_blank", "noopener,noreferrer");
+          }}
+          className="whitespace-nowrap rounded-md border px-4 py-2 text-sm hover:bg-gray-50 disabled:opacity-50"
+        >
+          👁 Ver invitación
+        </button>
       </div>
 
       <section className="rounded-lg border p-5">
@@ -203,54 +296,77 @@ export default function InvitationSectionsPage() {
           </div>
         ) : (
           sections.map((section, index) => (
-            <article
-              key={section.id}
-              className="flex items-center gap-4 rounded-lg border p-4"
-            >
-              <div className="flex flex-col">
+            <div key={section.id}>
+              <article className="flex items-center gap-4 rounded-lg border p-4">
+                <div className="flex flex-col">
+                  <button
+                    type="button"
+                    disabled={index === 0}
+                    onClick={() => moveSection(index, -1)}
+                    className="px-2 disabled:opacity-30"
+                  >
+                    ↑
+                  </button>
+
+                  <button
+                    type="button"
+                    disabled={index === sections.length - 1}
+                    onClick={() => moveSection(index, 1)}
+                    className="px-2 disabled:opacity-30"
+                  >
+                    ↓
+                  </button>
+                </div>
+
+                <div className="flex-1">
+                  <p className="font-medium">
+                    {sectionLabels[section.type] ?? section.type}
+                  </p>
+
+                  <p className="text-xs text-gray-500">{section.type}</p>
+                </div>
+
                 <button
                   type="button"
-                  disabled={index === 0}
-                  onClick={() => moveSection(index, -1)}
-                  className="px-2 disabled:opacity-30"
+                  onClick={() => toggleSection(section)}
+                  className="rounded-md border px-3 py-2 text-sm"
                 >
-                  ↑
+                  {section.enabled ? "Activo" : "Desactivado"}
                 </button>
 
                 <button
                   type="button"
-                  disabled={index === sections.length - 1}
-                  onClick={() => moveSection(index, 1)}
-                  className="px-2 disabled:opacity-30"
+                  onClick={() => deleteSection(section.id)}
+                  className="rounded-md border px-3 py-2 text-sm text-red-600"
                 >
-                  ↓
+                  Eliminar
                 </button>
-              </div>
 
-              <div className="flex-1">
-                <p className="font-medium">
-                  {sectionLabels[section.type] ?? section.type}
-                </p>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setEditingSectionId(
+                      editingSectionId === section.id ? null : section.id,
+                    )
+                  }
+                  className="rounded-md border px-3 py-2 text-sm"
+                >
+                  {editingSectionId === section.id ? "Cerrar editor" : "Editar"}
+                </button>
+              </article>
 
-                <p className="text-xs text-gray-500">{section.type}</p>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => toggleSection(section)}
-                className="rounded-md border px-3 py-2 text-sm"
-              >
-                {section.enabled ? "Activo" : "Desactivado"}
-              </button>
-
-              <button
-                type="button"
-                onClick={() => deleteSection(section.id)}
-                className="rounded-md border px-3 py-2 text-sm text-red-600"
-              >
-                Eliminar
-              </button>
-            </article>
+              {editingSectionId === section.id && (
+                <SectionEditor
+                  weddingId={weddingId}
+                  section={section}
+                  media={media}
+                  onSaved={async () => {
+                    await loadSections();
+                  }}
+                  onClose={() => setEditingSectionId(null)}
+                />
+              )}
+            </div>
           ))
         )}
       </section>

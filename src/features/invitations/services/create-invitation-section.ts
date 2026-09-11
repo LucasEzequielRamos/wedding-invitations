@@ -2,12 +2,12 @@ import { prisma } from "@/lib/db/prisma";
 import { getCurrentAuthUser } from "@/features/auth/services/get-current-user";
 import {
   invitationSectionSchema,
-  type InvitationSectionInput,
+  validateSectionConfig,
 } from "../schemas/invitation-section.schema";
 
 export async function createInvitationSection(
   weddingId: string,
-  input: InvitationSectionInput,
+  input: unknown,
 ) {
   const authUser = await getCurrentAuthUser();
 
@@ -20,6 +20,11 @@ export async function createInvitationSection(
   if (!parsed.success) {
     throw new Error("Sección inválida");
   }
+
+  const validatedConfig = validateSectionConfig(
+  parsed.data.type,
+  parsed.data.config,
+);
 
   const wedding = await prisma.wedding.findFirst({
     where: {
@@ -66,9 +71,9 @@ export async function createInvitationSection(
       type: parsed.data.type,
       enabled: parsed.data.enabled,
       sortOrder,
-      config: parsed.data.config
-        ? JSON.parse(JSON.stringify(parsed.data.config))
-        : undefined,
+      config: validatedConfig
+  ? JSON.parse(JSON.stringify(validatedConfig))
+  : undefined,
     },
   });
 }

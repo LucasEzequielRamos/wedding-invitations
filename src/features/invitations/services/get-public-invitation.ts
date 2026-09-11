@@ -42,22 +42,21 @@ export async function getPublicInvitation(slug: string) {
       },
 
       media: {
-        orderBy: [
-          {
-            sortOrder: "asc",
-          },
-          {
-            createdAt: "asc",
-          },
-        ],
-        select: {
-          id: true,
-          path: true,
-          type: true,
-          alt: true,
-          sortOrder: true,
-        },
-      },
+  orderBy: [
+    { sortOrder: "asc" },
+    { createdAt: "asc" },
+  ],
+  select: {
+    id: true,
+    path: true,
+    type: true,
+    alt: true,
+    sortOrder: true,
+    mimeType: true,
+    width: true,
+    height: true,
+  },
+},
 
       gifts: {
         where: {
@@ -81,7 +80,8 @@ export async function getPublicInvitation(slug: string) {
           sortOrder: true,
         },
       },
-      invitationSections: {
+
+     invitationSections: {
   where: {
     enabled: true,
   },

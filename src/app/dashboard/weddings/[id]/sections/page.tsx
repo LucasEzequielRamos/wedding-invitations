@@ -36,7 +36,6 @@ const sectionLabels: Record<string, string> = {
   FOOTER: "Footer",
   CUSTOM: "Personalizada",
 };
-const sectionTypes = Object.keys(sectionLabels);
 
 function defaultConfig(type: string) {
   switch (type) {
@@ -47,7 +46,6 @@ function defaultConfig(type: string) {
         subtitle: "",
         date: "",
         showDate: true,
-        mediaId: "",
       };
     case "COUNTDOWN":
       return {
@@ -80,7 +78,10 @@ function defaultConfig(type: string) {
         items: [],
       };
     case "ILLUSTRATION":
-      return { variant: "default", mediaId: "", alt: "" };
+      return {
+        variant: "default",
+        alt: "",
+      };
     case "TEXT":
       return { variant: "default", text: "", align: "center" };
     case "QUOTE":
@@ -95,6 +96,14 @@ function defaultConfig(type: string) {
 }
 
 export default function InvitationSectionsPage() {
+  const [plan, setPlan] = useState<"INFORMATIVE" | "FULL">("FULL");
+  const sectionTypes = Object.keys(sectionLabels).filter(type => {
+    if (plan === "INFORMATIVE") {
+      return type !== "RSVP" && type !== "GIFTS";
+    }
+
+    return true;
+  });
   const params = useParams();
   const weddingId = params.id as string;
   const [sections, setSections] = useState<Section[]>([]);
@@ -115,6 +124,7 @@ export default function InvitationSectionsPage() {
       if (w.ok) {
         const wd = await w.json();
         setSlug(wd.slug || "");
+        setPlan(wd.plan || "FULL");
       }
       if (!s.ok) throw new Error("No se pudieron cargar las secciones");
       setSections(await s.json());

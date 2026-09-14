@@ -29,11 +29,12 @@ export async function GET(
         },
       },
       select: {
-        id: true,
-        name: true,
-        slug: true,
-        status: true,
-      },
+  id: true,
+  name: true,
+  slug: true,
+  status: true,
+  plan: true,
+},
     });
 
     if (!wedding) {

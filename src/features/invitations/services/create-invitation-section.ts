@@ -36,14 +36,24 @@ export async function createInvitationSection(
       },
     },
     select: {
-      id: true,
-      status: true,
-    },
+  id: true,
+  status: true,
+  plan: true,
+},
   });
 
   if (!wedding) {
     throw new Error("Boda no encontrada");
   }
+
+  if (
+  wedding.plan === "INFORMATIVE" &&
+  (parsed.data.type === "RSVP" || parsed.data.type === "GIFTS")
+) {
+  throw new Error(
+    "Las secciones RSVP y Regalos requieren una boda FULL",
+  );
+}
 
   if (wedding.status === "COMPLETED") {
     throw new Error("La boda está completada");

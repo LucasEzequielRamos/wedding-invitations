@@ -1,0 +1,15 @@
+export const sectionVariants = {
+  HERO: [{ id: "default", label: "Predeterminada" }, { id: "botanical-editorial", label: "Botánico editorial" }],
+  COUNTDOWN: [{ id: "default", label: "Predeterminada" }, { id: "botanical-editorial", label: "Botánico editorial" }],
+  EVENTS: [{ id: "default", label: "Predeterminada" }, { id: "botanical-editorial", label: "Botánico editorial" }],
+  GALLERY: [{ id: "default", label: "Predeterminada" }, { id: "botanical-editorial", label: "Botánico editorial" }],
+  RSVP: [{ id: "default", label: "Predeterminada" }, { id: "botanical-editorial", label: "Botánico editorial" }],
+  GIFTS: [{ id: "default", label: "Predeterminada" }, { id: "botanical-editorial", label: "Botánico editorial" }],
+  FAQ: [{ id: "accordion", label: "Acordeón" }, { id: "botanical-editorial", label: "Botánico editorial" }],
+  TIMELINE: [{ id: "default", label: "Predeterminada" }, { id: "botanical-editorial", label: "Botánico editorial" }],
+  ILLUSTRATION: [{ id: "default", label: "Predeterminada" }, { id: "botanical", label: "Botánico" }],
+  QUOTE: [{ id: "default", label: "Normal" }, { id: "script", label: "Manuscrita" }],
+  TEXT: [{ id: "default", label: "Normal" }, { id: "elegant", label: "Elegante" }],
+  FOOTER: [{ id: "default", label: "Predeterminado" }, { id: "botanical-editorial", label: "Botánico editorial" }],
+  CUSTOM: [{ id: "romantic-floral", label: "Romántico floral" }],
+} as const;

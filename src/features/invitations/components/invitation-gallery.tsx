@@ -1,46 +1,34 @@
-import { createAdminClient } from "@/lib/supabase/admin";
+import Image from "next/image";
+import { getPublicMediaUrl } from "@/features/media/utils/get-public-media-url";
 
-type InvitationMedia = {
+type GalleryMedia = {
   id: string;
   path: string;
-  type: string;
   alt: string | null;
+  width: number | null;
+  height: number | null;
 };
 
-type InvitationGalleryProps = {
-  media: InvitationMedia[];
+type Props = {
+  media: GalleryMedia[];
 };
 
-export function InvitationGallery({ media }: InvitationGalleryProps) {
-  const supabase = createAdminClient();
-
-  const images = media
-    .filter(item => ["hero", "gallery", "illustration"].includes(item.type))
-    .map(item => ({
-      ...item,
-      url: supabase.storage.from("wedding-media").getPublicUrl(item.path).data
-        .publicUrl,
-    }));
-
-  if (images.length === 0) {
-    return null;
-  }
+export function InvitationGallery({ media }: Props) {
+  if (!media.length) return null;
 
   return (
-    <section className="mx-auto max-w-6xl px-6 py-20">
-      <div className="mb-10 text-center">
-        <h2 className="text-3xl font-bold">Nuestros momentos</h2>
-      </div>
-
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {images.map(image => (
-          <div key={image.id} className="overflow-hidden rounded-xl">
-            <img
-              src={image.url}
-              alt={image.alt ?? ""}
-              className="h-full w-full object-cover"
-            />
-          </div>
+    <section className="px-6 py-16">
+      <div className="mx-auto grid max-w-[1200px] grid-cols-2 gap-3 md:grid-cols-3">
+        {media.map(item => (
+          <Image
+            key={item.id}
+            src={getPublicMediaUrl(item.path)}
+            alt={item.alt ?? ""}
+            width={item.width ?? 800}
+            height={item.height ?? 800}
+            sizes="(max-width: 768px) 50vw, 33vw"
+            className="h-auto w-full object-cover"
+          />
         ))}
       </div>
     </section>

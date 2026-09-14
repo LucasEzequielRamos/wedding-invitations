@@ -18,6 +18,7 @@ export const invitationSectionTypeSchema = z.enum([
   "TIMELINE",
   "FOOTER",
   "CUSTOM",
+  "FAQ",
 ]);
 
 export const invitationSectionSchema = z.object({

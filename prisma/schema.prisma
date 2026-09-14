@@ -255,6 +255,7 @@ enum InvitationSectionType {
   TEXT
   ILLUSTRATION
   TIMELINE
+  FAQ
   FOOTER
   CUSTOM
 }

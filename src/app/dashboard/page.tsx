@@ -89,9 +89,11 @@ export default async function WeddingsPage() {
               <div className="mt-5 space-y-2 text-sm">
                 <p>
                   <span className="font-medium">Fecha:</span>{" "}
-                  {new Intl.DateTimeFormat("es-AR", {
-                    dateStyle: "medium",
-                  }).format(wedding.weddingDate)}
+                  {wedding.weddingDate
+                    ? new Intl.DateTimeFormat("es-AR").format(
+                        wedding.weddingDate,
+                      )
+                    : "Sin fecha"}
                 </p>
 
                 <p>

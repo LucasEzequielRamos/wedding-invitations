@@ -40,6 +40,12 @@ export async function updateWeddingConfig(
     throw new Error("La boda está completada");
   }
 
+  if (!wedding.weddingDate) {
+    throw new Error(
+      "La boda no tiene una fecha configurada",
+    );
+  }
+
   if (parsed.data.rsvpDeadline) {
     if (parsed.data.rsvpDeadline >= wedding.weddingDate) {
       throw new Error(

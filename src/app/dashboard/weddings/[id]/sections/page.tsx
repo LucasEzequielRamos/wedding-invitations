@@ -27,6 +27,7 @@ const sectionLabels: Record<string, string> = {
   TIMELINE: "Timeline",
   FOOTER: "Footer",
   CUSTOM: "Personalizada",
+  FAQ: "Preguntas frecuentes",
 };
 
 const sectionTypes = Object.keys(sectionLabels);

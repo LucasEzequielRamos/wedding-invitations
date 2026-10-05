@@ -1,6 +1,5 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { InvitationHero } from "./invitation-hero";
-import { InvitationEvents } from "./invitation-events";
+import { InvitationEvent, InvitationEvents } from "./invitation-events";
 import { InvitationGallery } from "./invitation-gallery";
 import { InvitationGifts } from "./invitation-gifts";
 import { InvitationRsvp } from "./invitation-rsvp";
@@ -9,7 +8,6 @@ import { InvitationCustom } from "./invitation-custom";
 import { InvitationFaq } from "./invitation-faq";
 import { illustrationConfigSchema } from "../schemas/illustration-config.schema";
 import { customConfigSchema } from "../schemas/custom-config.schema";
-import { parseSectionConfig } from "../schemas/parse-section-config";
 import { heroConfigSchema } from "../schemas/hero.schema";
 import { HeroBotanicalEditorial } from "./design-01/hero-botanical-editorial";
 import { CountdownBotanicalEditorial } from "./design-01/countdown-botanical-editorial";
@@ -21,6 +19,15 @@ import { GalleryBotanicalEditorial } from "./design-01/gallery-botanical-editori
 import { faqConfigSchema } from "../schemas/faq.schema";
 import { FaqBotanicalEditorial } from "./design-01/faq-botanical-editorial";
 import { GiftsBotanicalEditorial } from "./design-01/gifts-botanical-editorial";
+import { footerConfigSchema } from "../schemas/footer.schema";
+import { FooterBotanicalEditorial } from "./design-01/footer-botanical-editorial";
+import { IllustrationBotanicalEditorial } from "./design-01/illustration-botanical-editorial";
+import { textConfigSchema } from "../schemas/text-config.schema";
+import { InvitationText } from "./invitation-text";
+import { TextBotanicalEditorial } from "./design-01/text-botanical-editorial";
+import { quoteConfigSchema } from "../schemas/quote.schema";
+import { InvitationQuote } from "./invitation-quote";
+import { QuoteBotanicalEditorial } from "./design-01/quote-botanical-editorial";
 
 type InvitationSection = {
   id: string;
@@ -34,37 +41,43 @@ type InvitationSectionRendererProps = {
   invitation: {
     slug: string;
     name: string;
-    weddingDate: Date | null;
-    events: any[];
-    media: any[];
-    gifts: any[];
+    weddingDate: Date | string;
+    events: InvitationEvent[];
+    media: InvitationMedia[];
+    gifts: InvitationGift[];
     giftsAvailable: boolean;
     rsvpAvailable: boolean;
     id: string;
   };
 };
 
+type InvitationMedia = {
+  id: string;
+  path: string;
+  type: string;
+  alt: string | null;
+  mimeType: string | null;
+  width: number | null;
+  height: number | null;
+};
+
+type InvitationGift = {
+  id: string;
+  name: string;
+  description: string | null;
+  image: string | null;
+  externalUrl: string | null;
+  paymentUrl: string | null;
+};
+
 export function InvitationSectionRenderer({
   section,
   invitation,
 }: InvitationSectionRendererProps) {
-  // console.log(invitation);
   const config =
     section.config && typeof section.config === "object"
       ? (section.config as Record<string, unknown>)
       : {};
-
-  const mediaId = typeof config.mediaId === "string" ? config.mediaId : null;
-
-  const sectionMedia = mediaId
-    ? (invitation.media.find(item => item.id === mediaId) ?? null)
-    : null;
-
-  // console.log("ILLUSTRATION DEBUG:", {
-  //   config: section.config,
-  //   mediaId,
-  //   mediaIds: invitation.media.map(item => item.id),
-  // });
 
   switch (section.type) {
     case "HERO": {
@@ -113,7 +126,7 @@ export function InvitationSectionRenderer({
 
     case "RSVP": {
       if (config.variant === "botanical-editorial") {
-        return <RsvpBotanicalEditorial weddingId={invitation.id} />;
+        return <RsvpBotanicalEditorial slug={invitation.slug} />;
       }
 
       return <InvitationRsvp slug={invitation.slug} />;
@@ -135,7 +148,31 @@ export function InvitationSectionRenderer({
       const media =
         invitation.media.find(item => item.id === config.mediaId) ?? null;
 
+      if (config.variant === "botanical") {
+        return <IllustrationBotanicalEditorial config={config} media={media} />;
+      }
+
       return <InvitationIllustration config={config} media={media} />;
+    }
+
+    case "TEXT": {
+      const config = textConfigSchema.parse(section.config);
+
+      if (config.variant === "botanical-editorial") {
+        return <TextBotanicalEditorial config={config} />;
+      }
+
+      return <InvitationText config={config} />;
+    }
+
+    case "QUOTE": {
+      const config = quoteConfigSchema.parse(section.config);
+
+      if (config.variant === "botanical-editorial") {
+        return <QuoteBotanicalEditorial config={config} />;
+      }
+
+      return <InvitationQuote config={config} />;
     }
 
     case "CUSTOM": {
@@ -148,10 +185,28 @@ export function InvitationSectionRenderer({
       const config = countdownConfigSchema.parse(section.config ?? {});
 
       if (config.variant === "botanical-editorial") {
-        return <CountdownBotanicalEditorial config={config} />;
+        return (
+          <CountdownBotanicalEditorial
+            config={config}
+            weddingDate={invitation.weddingDate}
+          />
+        );
+      }
+      return <InvitationCountdown targetDate={invitation.weddingDate} />;
+    }
+
+    case "FOOTER": {
+      const config = footerConfigSchema.parse(section.config ?? {});
+
+      const media = config.mediaId
+        ? (invitation.media.find(item => item.id === config.mediaId) ?? null)
+        : null;
+
+      if (config.variant === "botanical-editorial") {
+        return <FooterBotanicalEditorial config={config} media={media} />;
       }
 
-      return <InvitationCountdown targetDate={config.targetDate} />;
+      return null;
     }
 
     default:

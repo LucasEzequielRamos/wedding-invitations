@@ -23,8 +23,8 @@ export const sectionVariants = {
       label: "Normal",
     },
     {
-      id: "elegant",
-      label: "Elegante",
+      id: "botanical-editorial",
+      label: "Botanico",
     },
   ],
 
@@ -34,8 +34,8 @@ export const sectionVariants = {
       label: "Normal",
     },
     {
-      id: "script",
-      label: "Manuscrita",
+      id: "botanical-editorial",
+      label: "Botanico",
     },
   ],
 } as const;

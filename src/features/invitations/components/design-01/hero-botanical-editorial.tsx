@@ -1,6 +1,5 @@
-import Image from "next/image";
-import { getPublicMediaUrl } from "@/features/media/utils/get-public-media-url";
 import type { HeroConfig } from "../../schemas/hero.schema";
+import { DESIGN_01_ASSETS } from "../../utils/design-assets";
 
 type HeroMedia = {
   path: string;
@@ -14,38 +13,37 @@ type Props = {
   media: HeroMedia | null;
 };
 
-export function HeroBotanicalEditorial({ config, media }: Props) {
+export function HeroBotanicalEditorial({ config }: Props) {
   return (
-    <section className="relative overflow-hidden bg-[#FDF6DC] text-[#283517]">
-      {media && (
-        <div className="relative w-full">
-          <Image
-            src={getPublicMediaUrl(media.path)}
-            alt={media.alt ?? ""}
-            width={media.width ?? 1600}
-            height={media.height ?? 1200}
-            priority
-            sizes="100vw"
-            className="h-auto w-full object-cover"
-          />
-        </div>
-      )}
+    <section className="relative w-full overflow-hidden bg-[var(--design-01-background)] text-[var(--design-01-dark)]">
+      {/* Desktop */}
+      <img
+        src={DESIGN_01_ASSETS.desktop.topFlores}
+        alt=""
+        aria-hidden="true"
+        className="hidden h-auto w-full md:block"
+      />
 
-      <div className="mx-auto flex min-h-[70svh] max-w-[1200px] flex-col items-center justify-center px-6 py-16 text-center">
-        {config.subtitle && (
-          <p className="mb-4 text-sm uppercase tracking-[0.25em]">
-            {config.subtitle}
-          </p>
-        )}
+      {/* Mobile */}
+      <img
+        src={DESIGN_01_ASSETS.mobile.topFlores}
+        alt=""
+        aria-hidden="true"
+        className="block h-auto w-full md:hidden"
+      />
 
+      {/* Contenido */}
+      <div className="absolute inset-0 flex flex-col items-center justify-center px-6 text-center">
         {config.title && (
-          <h1 className="text-5xl font-semibold tracking-tight sm:text-6xl lg:text-7xl">
+          <h1 className="font-script text-[clamp(2rem,3.4vw,3.25rem)] leading-none font-normal">
             {config.title}
           </h1>
         )}
 
         {config.showDate && config.date && (
-          <p className="mt-6 text-lg tracking-wide">{config.date}</p>
+          <p className="mt-4 font-script text-[clamp(1rem,1.5vw,1.4rem)] leading-none">
+            {config.date}
+          </p>
         )}
       </div>
     </section>

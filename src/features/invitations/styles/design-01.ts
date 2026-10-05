@@ -4,20 +4,35 @@ export const design01 = {
     primary: "#566B30",
     dark: "#283517",
     white: "#FFFFFF",
+    burgundy: "#A74850",
+    magenta: "#C00885",
+    olive: "#A5A25E",
   },
 
-  spacing: {
-    sectionMobile: "3rem",
-    sectionDesktop: "5rem",
+  fonts: {
+    body: "var(--font-altivo)",
+    script: "var(--font-la-belle-aurore)",
   },
 
   layout: {
-    maxWidth: "1200px",
+    maxWidth: "1440px",
+    mobileMaxWidth: "390px",
+
     mobilePadding: "24px",
     desktopPadding: "48px",
   },
 
-  radius: {
-    pill: "9999px",
+  breakpoints: {
+    mobile: 767,
+  },
+
+  assets: {
+    desktop: {
+      basePath: "/designs/design-01/desktop",
+    },
+
+    mobile: {
+      basePath: "/designs/design-01/mobile",
+    },
   },
 } as const;

@@ -3,10 +3,10 @@
 import { useEffect, useState } from "react";
 
 type CountdownProps = {
-  targetDate: string;
+  targetDate: string | Date;
 };
 
-function calculateCountdown(targetDate: string) {
+function calculateCountdown(targetDate: string | Date) {
   const difference = new Date(targetDate).getTime() - Date.now();
 
   if (difference <= 0) {
@@ -29,14 +29,21 @@ function calculateCountdown(targetDate: string) {
 }
 
 export function InvitationCountdown({ targetDate }: CountdownProps) {
-  const [countdown, setCountdown] = useState(() =>
-    calculateCountdown(targetDate),
-  );
+  const [countdown, setCountdown] = useState({
+    days: 0,
+    hours: 0,
+    minutes: 0,
+    seconds: 0,
+  });
 
   useEffect(() => {
-    const interval = setInterval(() => {
+    const update = () => {
       setCountdown(calculateCountdown(targetDate));
-    }, 1000);
+    };
+
+    update();
+
+    const interval = setInterval(update, 1000);
 
     return () => clearInterval(interval);
   }, [targetDate]);

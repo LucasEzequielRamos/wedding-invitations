@@ -2,7 +2,7 @@ import { z } from "zod";
 
 import { illustrationConfigSchema } from "./illustration-config.schema";
 import { customConfigSchema } from "./custom-config.schema";
-import { quoteConfigSchema } from "./quote-config.schema";
+import { quoteConfigSchema } from "./quote.schema";
 import { textConfigSchema } from "./text-config.schema";
 
 export const invitationSectionTypeSchema = z.enum([

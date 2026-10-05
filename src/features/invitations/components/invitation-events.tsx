@@ -1,7 +1,7 @@
-type InvitationEvent = {
+export type InvitationEvent = {
   id: string;
   name: string;
-  date: Date;
+  date: Date | string;
   location: string | null;
   address: string | null;
   mapsUrl: string | null;
@@ -28,7 +28,7 @@ export function InvitationEvents({ events }: Props) {
                 {new Intl.DateTimeFormat("es-AR", {
                   dateStyle: "long",
                   timeStyle: "short",
-                }).format(event.date)}
+                }).format(new Date(event.date))}
               </p>
 
               {event.location && <p className="mt-2">{event.location}</p>}

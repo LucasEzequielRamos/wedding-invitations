@@ -1,4 +1,6 @@
 import Image from "next/image";
+
+import { getPublicMediaUrl } from "@/features/media/utils/get-public-media-url";
 import type { CustomConfig } from "../schemas/custom-config.schema";
 
 type MediaItem = {
@@ -14,54 +16,44 @@ type Props = {
   media: MediaItem[];
 };
 
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-
-function getPublicMediaUrl(path: string) {
-  return `${SUPABASE_URL}/storage/v1/object/public/wedding-media/${path}`;
-}
-
 export function InvitationCustom({ config, media }: Props) {
-  const data =
-    config && typeof config === "object"
-      ? (config as {
-          variant?: string;
-          media?: Record<string, string>;
-        })
-      : {};
-
   const getMedia = (key: string) => {
     const id = config.media[key];
 
     return media.find(item => item.id === id) ?? null;
   };
 
-  switch (data.variant) {
+  switch (config.variant) {
     case "romantic-floral": {
       const top = getMedia("top");
       const bottom = getMedia("bottom");
 
       return (
-        <section className="relative py-20">
+        <section className="w-full overflow-hidden">
           {top && (
-            <Image
-              src={getPublicMediaUrl(top.path)}
-              alt={top.alt ?? ""}
-              width={top.width ?? 1200}
-              height={top.height ?? 800}
-              className="mx-auto max-w-full"
-            />
+            <div className="w-full">
+              <Image
+                src={getPublicMediaUrl(top.path)}
+                alt={top.alt ?? ""}
+                width={top.width ?? 1200}
+                height={top.height ?? 800}
+                sizes="100vw"
+                className="h-auto w-full object-contain"
+              />
+            </div>
           )}
 
-          <p className="text-center">Romantic Floral</p>
-
           {bottom && (
-            <Image
-              src={getPublicMediaUrl(bottom.path)}
-              alt={bottom.alt ?? ""}
-              width={bottom.width ?? 1200}
-              height={bottom.height ?? 800}
-              className="mx-auto max-w-full"
-            />
+            <div className="w-full">
+              <Image
+                src={getPublicMediaUrl(bottom.path)}
+                alt={bottom.alt ?? ""}
+                width={bottom.width ?? 1200}
+                height={bottom.height ?? 800}
+                sizes="100vw"
+                className="h-auto w-full object-contain"
+              />
+            </div>
           )}
         </section>
       );

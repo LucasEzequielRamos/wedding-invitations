@@ -3,7 +3,7 @@ import { countdownConfigSchema } from "./countdown.schema";
 import { timelineConfigSchema } from "./timeline.schema";
 import { faqConfigSchema } from "./faq.schema";
 import { quoteConfigSchema } from "./quote.schema";
-import { illustrationConfigSchema } from "./illustration.schema";
+import { illustrationConfigSchema } from "./illustration-config.schema";
 
 export function parseSectionConfig(
   type: string,

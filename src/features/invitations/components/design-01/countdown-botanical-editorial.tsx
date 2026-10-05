@@ -1,13 +1,17 @@
-"use client";
-
-import type { CountdownConfig } from "../../schemas/countdown.schema";
 import { InvitationCountdown } from "../invitation-countdown";
 
 type Props = {
-  config: CountdownConfig;
+  config: {
+    title?: string;
+  };
+  weddingDate: Date | string;
 };
 
-export function CountdownBotanicalEditorial({ config }: Props) {
+export function CountdownBotanicalEditorial({ config, weddingDate }: Props) {
+  if (!weddingDate) {
+    return null;
+  }
+
   return (
     <section className="bg-[#566B30] px-6 py-10 text-white">
       <div className="mx-auto max-w-[1200px] text-center">
@@ -15,7 +19,7 @@ export function CountdownBotanicalEditorial({ config }: Props) {
           <h2 className="mb-6 text-2xl font-medium">{config.title}</h2>
         )}
 
-        <InvitationCountdown targetDate={config.targetDate} />
+        <InvitationCountdown targetDate={weddingDate} />
       </div>
     </section>
   );

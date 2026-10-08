@@ -33,11 +33,15 @@ export async function POST(
   try {
     const { id } = await params;
     const body = await request.json();
+    // console.log("id", id);
+    // console.log("body", body);
 
     const section = await createInvitationSection(
       id,
       body,
     );
+
+    console.log("section", section);
 
     return NextResponse.json(section);
   } catch (error) {

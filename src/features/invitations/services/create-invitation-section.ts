@@ -17,6 +17,7 @@ export async function createInvitationSection(
 
   const parsed = invitationSectionSchema.safeParse(input);
 
+
   if (!parsed.success) {
     throw new Error("Sección inválida");
   }
@@ -64,6 +65,8 @@ export async function createInvitationSection(
   const sortOrder = lastSection
     ? lastSection.sortOrder + 1
     : 0;
+
+  console.log(validatedConfig)
 
   return prisma.invitationSection.create({
     data: {

@@ -264,6 +264,14 @@ export function SectionEditor({
         items: faqItems,
       };
     }
+    /*
+     * Micros
+     */
+    if (section.type === "MICROS") {
+      config = {
+        variant,
+      };
+    }
 
     /*
      * FOOTER

@@ -13,13 +13,17 @@ export function CountdownBotanicalEditorial({ config, weddingDate }: Props) {
   }
 
   return (
-    <section className="bg-[#566B30] px-6 py-10 text-white">
-      <div className="mx-auto max-w-[1200px] text-center">
-        {config.title && (
-          <h2 className="mb-6 text-2xl font-medium">{config.title}</h2>
-        )}
+    <section className="w-full bg-(--design-01-background) px-0 py-5 md:py-8">
+      <div className="w-full bg-(--design-01-primary) text-(--design-01-white)">
+        <div className="mx-auto flex  w-full max-w-300 flex-col items-center justify-center px-6 py-7 md:min-h-40 md:px-10 md:py-10">
+          {config.title && (
+            <h2 className="mb-7 text-center font-script text-3xl font-normal leading-none md:mb-9 md:text-4xl">
+              {config.title}
+            </h2>
+          )}
 
-        <InvitationCountdown targetDate={weddingDate} />
+          <InvitationCountdown targetDate={weddingDate} />
+        </div>
       </div>
     </section>
   );

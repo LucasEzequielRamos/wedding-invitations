@@ -28,6 +28,9 @@ import { TextBotanicalEditorial } from "./design-01/text-botanical-editorial";
 import { quoteConfigSchema } from "../schemas/quote.schema";
 import { InvitationQuote } from "./invitation-quote";
 import { QuoteBotanicalEditorial } from "./design-01/quote-botanical-editorial";
+import { StoryBotanicalEditorial } from "./design-01/story-botanical-editorial";
+import { MicrosBotanicalEditorial } from "./design-01/micros-botanical-editorial";
+import { PreweddingPhotoBotanicalEditorial } from "./design-01/prewedding-photo-botanical-editorial";
 
 type InvitationSection = {
   id: string;
@@ -101,6 +104,11 @@ export function InvitationSectionRenderer({
       return <InvitationEvents events={invitation.events} />;
 
     case "GALLERY": {
+
+       if (config.variant === "botanical-prewedding") {
+    return <PreweddingPhotoBotanicalEditorial />;
+  }
+
       if (config.variant === "botanical-editorial") {
         return (
           <GalleryBotanicalEditorial
@@ -117,12 +125,13 @@ export function InvitationSectionRenderer({
     }
 
     case "GIFTS": {
-      if (config.variant === "botanical-editorial") {
-        return <GiftsBotanicalEditorial gifts={invitation.gifts} />;
-      }
 
-      return <InvitationGifts gifts={invitation.gifts} />;
-    }
+  if (config.variant === "botanical-editorial") {
+    return <GiftsBotanicalEditorial gifts={invitation.gifts} />;
+  }
+
+  return <InvitationGifts gifts={invitation.gifts} />;
+}
 
     case "RSVP": {
       if (config.variant === "botanical-editorial") {
@@ -134,6 +143,7 @@ export function InvitationSectionRenderer({
 
     case "FAQ": {
       const config = faqConfigSchema.parse(section.config ?? {});
+
 
       if (config.variant === "botanical-editorial") {
         return <FaqBotanicalEditorial config={config} />;
@@ -152,7 +162,19 @@ export function InvitationSectionRenderer({
         return <IllustrationBotanicalEditorial config={config} media={media} />;
       }
 
+      if (config.variant === "botanical-story") {
+        return <StoryBotanicalEditorial />;
+      }
+
       return <InvitationIllustration config={config} media={media} />;
+    }
+
+    case "MICROS": {
+      if (config.variant === "botanical-editorial") {
+        return <MicrosBotanicalEditorial />;
+      }
+
+      return null;
     }
 
     case "TEXT": {
@@ -198,12 +220,12 @@ export function InvitationSectionRenderer({
     case "FOOTER": {
       const config = footerConfigSchema.parse(section.config ?? {});
 
-      const media = config.mediaId
-        ? (invitation.media.find(item => item.id === config.mediaId) ?? null)
-        : null;
+      // const media = config.mediaId
+      //   ? (invitation.media.find(item => item.id === config.mediaId) ?? null)
+      //   : null;
 
       if (config.variant === "botanical-editorial") {
-        return <FooterBotanicalEditorial config={config} media={media} />;
+        return <FooterBotanicalEditorial config={config}  />;
       }
 
       return null;

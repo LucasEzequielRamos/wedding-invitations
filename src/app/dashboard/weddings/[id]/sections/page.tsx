@@ -28,6 +28,7 @@ const sectionLabels: Record<string, string> = {
   FOOTER: "Footer",
   CUSTOM: "Personalizada",
   FAQ: "Preguntas frecuentes",
+  MICROS: "Micros",
 };
 
 const sectionTypes = Object.keys(sectionLabels);
@@ -132,6 +133,12 @@ export default function InvitationSectionsPage() {
           author: "",
         };
         break;
+
+      case "MICROS":
+  config = {
+    variant: "botanical-editorial",
+  };
+  break;
 
       default:
         config = {};

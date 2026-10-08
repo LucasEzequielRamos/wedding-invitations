@@ -8,6 +8,11 @@ export const sectionVariants = {
       id: "botanical",
       label: "Botánico",
     },
+    {
+      id: "botanical-pewedding",
+      label: "Botánico Preboda",
+    },
+
   ],
 
   CUSTOM: [
@@ -38,4 +43,10 @@ export const sectionVariants = {
       label: "Botanico",
     },
   ],
+  MICROS: [
+  {
+    id: "botanical-editorial",
+    label: "Botanical Editorial",
+  },
+],
 } as const;

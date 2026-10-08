@@ -1,39 +1,30 @@
 import Image from "next/image";
-
-import { getPublicMediaUrl } from "@/features/media/utils/get-public-media-url";
-import type { FooterConfig } from "../../schemas/footer.schema";
-
-type FooterMedia = {
-  path: string;
-  alt: string | null;
-  width: number | null;
-  height: number | null;
-};
+import { DESIGN_01_ASSETS } from "../../utils/design-assets";
 
 type Props = {
-  config: FooterConfig;
-  media: FooterMedia | null;
+  config: {
+    variant?: string;
+  };
 };
 
-export function FooterBotanicalEditorial({ config, media }: Props) {
+export function FooterBotanicalEditorial({}: Props) {
   return (
-    <footer className="bg-[#FDF6DC] px-6 py-20 text-[#283517]">
-      <div className="mx-auto flex min-h-[300px] max-w-[1200px] flex-col items-center justify-center">
-        <p className="font-['la_belle_aurore'] text-4xl sm:text-5xl">
-          {config.title}
-        </p>
+    <footer className="w-full overflow-hidden bg-(--design-01-background) text-(--design-01-dark)">
+      <div className="flex w-full flex-col items-center">
+        <div className="font-script text-3xl transform -rotate-6 mt-7 md:text-5xl">
+         <p>Te esperamos!</p>
+        </div>
 
-        {media && (
-          <div className="mt-8">
-            <Image
-              src={getPublicMediaUrl(media.path)}
-              alt={media.alt ?? ""}
-              width={media.width ?? 300}
-              height={media.height ?? 300}
-              className="h-24 w-24 object-contain"
-            />
-          </div>
-        )}
+        <div className="mt-6 mb-10 w-24 md:mt-10 md:mb-16 md:w-44">
+          <Image
+            src={DESIGN_01_ASSETS.desktop.logoLetras}
+            alt="Logo"
+            width={650}
+            height={300}
+            className="block h-auto w-full "
+          />
+
+        </div>
       </div>
     </footer>
   );

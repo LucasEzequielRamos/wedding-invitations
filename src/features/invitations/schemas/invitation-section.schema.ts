@@ -19,6 +19,7 @@ export const invitationSectionTypeSchema = z.enum([
   "FOOTER",
   "CUSTOM",
   "FAQ",
+  "MICROS"
 ]);
 
 export const invitationSectionSchema = z.object({
@@ -53,6 +54,7 @@ export function validateSectionConfig(
     case "GIFTS":
     case "TIMELINE":
     case "FOOTER":
+    case "MICROS":
       return config ?? {};
 
     default:

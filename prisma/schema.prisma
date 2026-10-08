@@ -258,4 +258,5 @@ enum InvitationSectionType {
   FAQ
   FOOTER
   CUSTOM
+  MICROS
 }

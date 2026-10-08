@@ -1,4 +1,5 @@
 import { InvitationRsvp } from "../invitation-rsvp";
+import { DESIGN_01_ASSETS } from "../../utils/design-assets";
 
 type Props = {
   slug: string;
@@ -6,11 +7,26 @@ type Props = {
 
 export function RsvpBotanicalEditorial({ slug }: Props) {
   return (
-    <section className="bg-[#FDF6DC] px-6 py-16 text-[#283517]">
-      <div className="mx-auto max-w-[700px]">
-        <div className="rounded-[2rem] border-2 border-[#566B30] p-6 sm:p-10">
-          <InvitationRsvp slug={slug} />
-        </div>
+    <section className="relative md:mt-30  h-120 w-full overflow-hidden bg-(--design-01-background) md:h-240">
+      {/* Fondo desktop */}
+      <div
+        className="absolute inset-0 hidden bg-contain bg-top bg-no-repeat md:block"
+        style={{
+          backgroundImage: `url(${DESIGN_01_ASSETS.desktop.fondoAsistencia})`,
+        }}
+      />
+
+      {/* Fondo mobile */}
+      <div
+        className="absolute inset-0 bg-cover bg-top bg-no-repeat md:hidden "
+        style={{
+          backgroundImage: `url(${DESIGN_01_ASSETS.desktop.fondoAsistencia})`,
+        }}
+      />
+
+      {/* Contenido */}
+      <div className="relative z-10 flex h-full w-full items-center justify-center">
+        <InvitationRsvp slug={slug} />
       </div>
     </section>
   );

@@ -142,7 +142,7 @@ export async function submitPublicRsvp(
   wedding.rsvpDeadline &&
   new Date() > wedding.rsvpDeadline
   ) {
-  throw new Error("El RSVP está cerrado");
+  throw new Error("El RSVP está cerrado, paso la fecha de confirmacion");
   }
 
   const guest = await prisma.guest.findFirst({
@@ -219,6 +219,8 @@ export async function submitPublicRsvp(
   /*
    * Guardamos RSVP + respuestas en una única transacción.
    */
+  console.log("data", data);
+
   return prisma.$transaction(async (tx) => {
     const rsvp = await tx.rsvp.upsert({
       where: {

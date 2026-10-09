@@ -6,9 +6,9 @@ export async function POST(
 ) {
   try {
     const body = await request.json();
+    console.log("body", body);
 
-    const result =
-      await submitPublicRsvp(body);
+    const result = await submitPublicRsvp(body);
 
     return NextResponse.json(result);
   } catch (error) {

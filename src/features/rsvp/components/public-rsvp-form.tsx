@@ -24,6 +24,8 @@ export function PublicRsvpForm({ slug }: Props) {
   const [rsvp, setRsvp] = useState<RsvpData | null>(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
+  const [textoBoton, setTextoBoton] = useState("Buscar invitado");
+  const [textoBotonEnCarga, setTextoBotonEnCarga] = useState("Buscando invitado...");
 
   async function searchGuest() {
     setLoading(true);
@@ -53,6 +55,7 @@ export function PublicRsvpForm({ slug }: Props) {
       });
 
       const data = await response.json();
+      
 
       if (!response.ok) {
         setMessage(data.error ?? "No encontramos tu invitación.");
@@ -64,6 +67,11 @@ export function PublicRsvpForm({ slug }: Props) {
       setMessage("Ocurrió un error. Intentá nuevamente.");
     } finally {
       setLoading(false);
+      setMessage("Invitado encontrado. Vuelva a apretar para confirmar su asistencia.");
+      setTextoBoton("Confirmar asistencia");
+      setTextoBotonEnCarga("Confirmando...");
+
+
     }
   }
 
@@ -95,6 +103,8 @@ export function PublicRsvpForm({ slug }: Props) {
 
       const data = await response.json();
 
+      console.log("data de response de submit", data)
+
       if (!response.ok) {
         setMessage(
           data.error ?? "No pudimos guardar tu respuesta.",
@@ -107,6 +117,8 @@ export function PublicRsvpForm({ slug }: Props) {
       setMessage("Ocurrió un error. Intentá nuevamente.");
     } finally {
       setLoading(false);
+      setFullName("");
+      setPhone("");
     }
   }
 
@@ -288,7 +300,7 @@ export function PublicRsvpForm({ slug }: Props) {
           md:text-xl
         "
       >
-        {loading ? "Confirmando..." : "Confirmar asistencia"}
+        {loading ? textoBotonEnCarga : textoBoton}
       </button>
 
       {/* Aclaración */}

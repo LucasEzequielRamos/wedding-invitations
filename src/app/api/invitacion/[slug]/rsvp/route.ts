@@ -22,6 +22,7 @@ export async function POST(
       body.lastName,
     );
 
+
     return NextResponse.json({
       weddingId: result.wedding.id,
       guestId: result.guest.id,

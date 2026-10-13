@@ -131,6 +131,48 @@ export default function GuestsPage() {
     }
   }
 
+  
+async function removeGuest(guest: Guest) {
+  const fullName = `${guest.firstName} ${guest.lastName}`;
+
+  if (
+    !window.confirm(
+      `¿Seguro que querés eliminar a ${fullName}?\n\nSe borrarán también su confirmación de asistencia y sus respuestas. Esta acción no se puede deshacer.`,
+    )
+  ) {
+    return;
+  }
+
+  setWorking(true);
+  setError("");
+  setMessage("");
+
+  try {
+    const response = await fetch(
+      `/api/dashboard/weddings/${weddingId}/guests/${guest.id}`,
+      { method: "DELETE" },
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || "No se pudo eliminar el invitado");
+    }
+
+    setMessage(`${fullName} fue eliminado correctamente.`);
+    await loadData();
+  } catch (error) {
+    setError(
+      error instanceof Error
+        ? error.message
+        : "Error al eliminar el invitado",
+    );
+  } finally {
+    setWorking(false);
+  }
+}
+
+
   async function createGroup(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setWorking(true);
@@ -393,6 +435,7 @@ export default function GuestsPage() {
                     <th className="p-3">Invitado</th>
                     <th className="p-3">Grupo</th>
                     <th className="p-3">Resultado</th>
+                    
                   </tr>
                 </thead>
                 <tbody>
@@ -453,6 +496,7 @@ export default function GuestsPage() {
                 <th className="p-3">Nombre</th>
                 <th className="p-3">Grupo</th>
                 <th className="p-3">Confirmación</th>
+                <th className="p-3">Acciones</th>
               </tr>
             </thead>
             <tbody>
@@ -468,6 +512,16 @@ export default function GuestsPage() {
                       : guest.rsvp?.status === "NOT_ATTENDING"
                         ? "No asiste"
                         : "Pendiente"}
+                  </td>
+                  <td className="p-3">
+                    <button
+                      type="button"
+                      onClick={() => void removeGuest(guest)}
+                      disabled={working}
+                      className="rounded-md border border-red-300 px-3 py-1.5 text-red-700 hover:bg-red-50 disabled:opacity-50"
+                    >
+                      Eliminar
+                    </button>
                   </td>
                 </tr>
               ))}

@@ -78,7 +78,7 @@ export function EventsBotanicalEditorial({ events }: Props) {
 
             {/* Navegación */}
             {event.mapsUrl && (
-              <div className="relative mt-8 flex w-full min-h-24 flex-col items-center px-6 md:mt-10">
+              <div className="relative mt-8 flex w-full min-h-24   flex-col items-center px-6 md:mt-10">
                 {/* Flecha mobile */}
                 <div className="flex md:hidden  absolute bottom-0 left-1/2 -translate-x-24 translate-y-5">
                   <Image
@@ -114,7 +114,7 @@ export function EventsBotanicalEditorial({ events }: Props) {
                 </div>
 
                 {/* Texto */}
-                <p className="mt-4 font-altivo text-xl md:mt-8 md:text-2xl absolute bottom-0 right-1/2 -translate-x-4 translate-y-20 md:translate-y-34 md:-translate-x-30 text-[--design-01-dark]">
+                <p className="mt-4  font-altivo text-lg md:mt-8 md:text-2xl absolute bottom-0 right-1/2 -translate-x-6 translate-y-20 md:translate-y-34 md:-translate-x-30 text-[--design-01-dark]">
                   Te llevamos <br /> con Maps!
                 </p>
               </div>

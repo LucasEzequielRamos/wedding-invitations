@@ -5,25 +5,104 @@ import { useState } from "react";
 import { DESIGN_01_ASSETS } from "../../utils/design-assets";
 
 type Props = {
-  onSubmit?: (data: {
-    stop: "OBELISCO" | "LANUS";
-    fullName: string;
-    phone: string;
-  }) => void;
+  slug: string;
 };
 
-export function MicrosBotanicalEditorial({ onSubmit }: Props) {
-  const [stop, setStop] = useState<"OBELISCO" | "LANUS">("OBELISCO");
+export function MicrosBotanicalEditorial({ slug }: Props) {
+  const [stop, setStop] = useState<"OBELISCO" | "LANUS" | "">("");
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
+  const [needsBus, setNeedsBus] = useState(false);
+const [busStopId, setBusStopId] = useState<string | null>(null);
 
-  function submit() {
-    onSubmit?.({
-      stop,
-      fullName,
-      phone,
-    });
+  async function submit() {
+  if (!stop) {
+    alert("Elegí una parada.");
+    return;
   }
+
+  if (!fullName.trim() || !phone.trim()) {
+    alert("Ingresá tu nombre completo y teléfono.");
+    return;
+  }
+
+  try {
+    const parts = fullName.trim().split(/\s+/);
+
+    if (parts.length < 2) {
+      alert("Ingresá tu nombre completo.");
+      return;
+    }
+
+    setNeedsBus(true);
+
+    const lookupResponse = await fetch(`/api/invitacion/${slug}/rsvp`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        firstName: parts[0],
+        lastName: parts.slice(1).join(" "),
+      }),
+    });
+
+    const guest = await lookupResponse.json();
+
+    if (!lookupResponse.ok) {
+      alert(guest.error ?? "No encontramos tu invitación.");
+      return;
+    }
+
+    const buses = guest.buses ?? [];
+    const stops = buses.flatMap(
+      (bus: {
+        name: string;
+        stops: { id: string; name: string }[];
+      }) => bus.stops ?? [],
+    );
+
+    const selectedStop = stops.find((item: { id: string; name: string }) => {
+      const name = item.name
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase();
+
+      return stop === "OBELISCO"
+        ? name.includes("obelisco")
+        : name.includes("lanus");
+    });
+
+    if (!selectedStop) {
+      alert("La parada elegida no está configurada para esta boda.");
+      return;
+    }
+
+    const response = await fetch(`/api/invitacion/${slug}/micros`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        fullName,
+        phone,
+        busStopId: selectedStop.id,
+      }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      alert(data.error ?? "No se pudo registrar el viaje.");
+      return;
+    }
+
+    alert(data.message);
+    setStop("");
+    setFullName("");
+    setPhone("");
+    setNeedsBus(false);
+    setBusStopId(null);
+  } catch {
+    alert("Ocurrió un error. Intentá nuevamente.");
+  }
+}
 
   return (
     <section className="w-full  bg-(--design-01-background) text-(--design-01-dark)">
@@ -44,12 +123,12 @@ export function MicrosBotanicalEditorial({ onSubmit }: Props) {
           aria-hidden="true"
           width={368}
           height={168}
-          className="block h-auto w-full  md:hidden"
+          className="block h-auto w-[95%] md:hidden mx-auto"
         />
 
         {/* Formulario */}
         <div
-          className="absolute top-[35%] left-1/2 -translate-x-1/2 mx-auto -mt-2 flex w-[55%] max-w-md flex-col items-center px-6 md:absolute md:top-[40%] md:left-1/2 md:-translate-x-1/2 md:px-0">
+          className="absolute top-16 left-1/2 -translate-x-1/2 mx-auto -mt-2 flex w-[65%] max-w-md flex-col items-center px-6 md:absolute md:top-[40%] md:left-1/2 md:-translate-x-1/2 md:px-0">
           <p
             className="max-w-xs text-center font-altivo text-[0.55rem] leading-tight md:max-w-xl md:w-xl md:text-lg">
             Dispondremos de viajes en combi ida y vuelta para que solo te
@@ -58,7 +137,7 @@ export function MicrosBotanicalEditorial({ onSubmit }: Props) {
 
           {/* Paradas */}
           <div
-            className="mt-4 flex items-center justify-center gap-6 font-script text-sm md:mt-7 md:gap-12 md:text-xl">
+            className="mt-2 flex items-center w-full justify-center gap-2 font-script text-xs md:mt-7 md:gap-12 md:text-xl">
             <label className="flex cursor-pointer items-center gap-2">
               <input
                 type="radio"
@@ -84,13 +163,13 @@ export function MicrosBotanicalEditorial({ onSubmit }: Props) {
 
           {/* Inputs */}
           <div
-            className=" mt-4 flex w-full flex-col gap-2 md:mt-6 md:gap-3">
+            className=" mt-2 flex w-full flex-col gap-2 md:mt-6 md:gap-3">
             <input
               type="text"
               value={fullName}
               onChange={(event) => setFullName(event.target.value)}
               placeholder="Nombre completo"
-              className="h-9 w-full rounded-full border-0 bg-(--design-01-primary) px-5 font-script text-sm text-(--design-01-white) outline-none placeholder:text-(--design-01-white) md:h-12 md:px-8 md:text-xl"
+              className="h-7 w-4/5 mx-auto rounded-full border-0 bg-(--design-01-primary) px-5 font-script text-sm text-(--design-01-white) outline-none placeholder:text-(--design-01-white) md:h-12 md:px-8 md:text-xl"
             />
 
             <input
@@ -98,7 +177,7 @@ export function MicrosBotanicalEditorial({ onSubmit }: Props) {
               value={phone}
               onChange={(event) => setPhone(event.target.value)}
               placeholder="Teléfono"
-              className="h-9 w-full rounded-full border-0 bg-(--design-01-primary) px-5 font-script text-sm text-(--design-01-white) outline-none placeholder:text-(--design-01-white) md:h-12 md:px-8 md:text-xl" />
+              className="h-7 w-4/5 mx-auto rounded-full border-0 bg-(--design-01-primary) px-5 font-script text-sm text-(--design-01-white) outline-none placeholder:text-(--design-01-white) md:h-12 md:px-8 md:text-xl" />
           </div>
 
           {/* Botón */}

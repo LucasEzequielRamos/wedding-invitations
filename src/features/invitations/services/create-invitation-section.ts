@@ -66,7 +66,6 @@ export async function createInvitationSection(
     ? lastSection.sortOrder + 1
     : 0;
 
-  console.log(validatedConfig)
 
   return prisma.invitationSection.create({
     data: {

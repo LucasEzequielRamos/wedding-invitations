@@ -18,7 +18,6 @@ export async function GET(_: Request, { params }: Context) {
       arr.findIndex((g) => g?.id === group?.id) === index,
   );
 
-console.log(groups);
     return NextResponse.json(groups);
   } catch (error) {
     const message =

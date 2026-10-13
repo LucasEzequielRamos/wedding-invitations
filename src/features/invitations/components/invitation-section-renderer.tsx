@@ -44,7 +44,7 @@ type InvitationSectionRendererProps = {
   invitation: {
     slug: string;
     name: string;
-    weddingDate: Date | string;
+    weddingDate: Date | string ;
     events: InvitationEvent[];
     media: InvitationMedia[];
     gifts: InvitationGift[];
@@ -171,7 +171,7 @@ export function InvitationSectionRenderer({
 
     case "MICROS": {
       if (config.variant === "botanical-editorial") {
-        return <MicrosBotanicalEditorial />;
+        return <MicrosBotanicalEditorial slug={invitation.slug} />;
       }
 
       return null;

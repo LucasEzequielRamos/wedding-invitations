@@ -1,5 +1,8 @@
+'use client'
+
 import Image from "next/image";
 import { DESIGN_01_ASSETS } from "../../utils/design-assets";
+import { useState } from "react";
 
 type InvitationGift = {
   id: string;
@@ -13,6 +16,8 @@ type Props = {
 };
 
 function CopyIcon() {
+
+  
   return (
     <svg
       viewBox="0 0 16 16"
@@ -44,6 +49,8 @@ export function GiftsBotanicalEditorial({ gifts }: Props) {
     (gift) => gift.isVisible !== false && gift.description,
   );
 
+  const [copyMessage, setCopyMessage] = useState("");
+
   return (
     <section className="w-full overflow-hidden bg-(--design-01-background) text-(--design-01-dark)">
       <div className="mx-auto flex w-full flex-col items-center">
@@ -68,18 +75,7 @@ export function GiftsBotanicalEditorial({ gifts }: Props) {
 
         {/* Texto */}
         <p
-          className="
-            mt-2
-            max-w-86
-            text-center
-            font-altivo
-            text-xs
-            leading-tight
-            md:mt-3
-            md:max-w-2xl
-            md:text-xl
-          "
-        >
+          className=" mt-2 max-w-86 text-center font-altivo text-xs leading-tight md:mt-3 md:max-w-2xl md:text-xl">
           Nuestro mayor deseo es poder compartir este día tan
           <br className="hidden md:block" />
           especial con ustedes, pero si desean hacernos un regalo
@@ -89,24 +85,24 @@ export function GiftsBotanicalEditorial({ gifts }: Props) {
 
         {/* Datos */}
         <div
-          className="
-            mt-5
-            flex
-            flex-col
-            gap-3
-            font-altivo
-            text-[0.5rem]
-            md:mt-7
-            md:gap-4
-            md:text-sm
-          "
-        >
-          {visibleGifts.map((gift) => (
-            <div
+          className=" mt-5 flex flex-col gap-3 font-altivo text-[0.5rem] md:mt-7 md:gap-4 md:text-sm">
+          {visibleGifts.map((gift) => ( <div
               key={gift.id}
               className="flex items-center gap-2"
             >
-              <CopyIcon />
+              <button onClick={() =>{
+                setCopyMessage("Copiado al portapapeles");
+                              setTimeout(() => {
+                setCopyMessage("");
+              }, 2000);
+                 navigator.clipboard.writeText(gift.description || "")}}>
+                <CopyIcon />
+              </button>
+
+
+
+
+
 
               <span className="text-sm md:text-lg">
                 <span className="text-sm md:text-lg">{gift.name}:</span>{" "}
@@ -116,6 +112,13 @@ export function GiftsBotanicalEditorial({ gifts }: Props) {
           ))}
         </div>
 
+        <div className="mt-2 h-4 md:mt-3 md:h-5 (--design-01-dark)"> 
+          {copyMessage && (
+            <span className="text-xs text- md:text-sm">
+              {copyMessage}
+            </span>
+          )}
+</div>
         {/* Gracias */}
         <div className="mt-7 w-32 md:mt-10 md:w-64">
           <Image

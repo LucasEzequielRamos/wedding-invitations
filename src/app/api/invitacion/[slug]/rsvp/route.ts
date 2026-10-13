@@ -30,6 +30,10 @@ export async function POST(
       status: result.rsvp.status,
       answers: result.rsvp.answers,
       questions: result.questions,
+      busesEnabled: result.wedding.busesEnabled,
+buses: result.wedding.buses,
+needsBus: result.rsvp.needsBus,
+busStopId: result.rsvp.busStopId,
     });
   } catch (error) {
     return NextResponse.json(

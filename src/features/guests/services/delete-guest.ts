@@ -1,7 +1,9 @@
+
 import { prisma } from "@/lib/db/prisma";
 import { getCurrentAuthUser } from "@/features/auth/services/get-current-user";
 
 export async function deleteGuest(
+  weddingId: string,
   guestId: string,
 ) {
   const authUser = await getCurrentAuthUser();
@@ -13,11 +15,20 @@ export async function deleteGuest(
   const guest = await prisma.guest.findFirst({
     where: {
       id: guestId,
+      weddingId,
       wedding: {
         members: {
           some: {
             userId: authUser.id,
           },
+        },
+      },
+    },
+    select: {
+      id: true,
+      wedding: {
+        select: {
+          status: true,
         },
       },
     },
@@ -27,9 +38,15 @@ export async function deleteGuest(
     throw new Error("Invitado no encontrado");
   }
 
+  if (guest.wedding.status === "COMPLETED") {
+    throw new Error(
+      "No se pueden eliminar invitados de una boda completada",
+    );
+  }
+
   return prisma.guest.delete({
     where: {
-      id: guestId,
+      id: guest.id,
     },
   });
 }

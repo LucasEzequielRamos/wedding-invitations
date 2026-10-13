@@ -108,6 +108,7 @@ export async function submitPublicRsvp(
       status: true,
       plan: true,
       rsvpEnabled: true,
+      busesEnabled: true,
   rsvpDeadline: true,
       rsvpQuestions: {
         select: {
@@ -119,6 +120,36 @@ export async function submitPublicRsvp(
       },
     },
   });
+
+  let needsBus = data.needsBus;
+let busStopId = data.busStopId;
+
+if (data.status === "NOT_ATTENDING" || !wedding?.busesEnabled) {
+  needsBus = false;
+  busStopId = null;
+}
+
+if (needsBus && !busStopId) {
+  throw new Error("Seleccioná una parada de micro");
+}
+
+if (busStopId) {
+  const stop = await prisma.busStop.findFirst({
+    where: {
+      id: busStopId,
+      bus: {
+        weddingId: wedding?.id,
+      },
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  if (!stop || !needsBus) {
+    throw new Error("La parada de micro seleccionada no es válida");
+  }
+}
 
   if (!wedding) {
     throw new Error("Boda no encontrada");
@@ -219,7 +250,6 @@ export async function submitPublicRsvp(
   /*
    * Guardamos RSVP + respuestas en una única transacción.
    */
-  console.log("data", data);
 
   return prisma.$transaction(async (tx) => {
     const rsvp = await tx.rsvp.upsert({
@@ -229,11 +259,15 @@ export async function submitPublicRsvp(
       update: {
         status: data.status,
         respondedAt: new Date(),
+        needsBus,
+busStopId,
       },
       create: {
         guestId: guest.id,
         status: data.status,
         respondedAt: new Date(),
+        needsBus,
+busStopId,
       },
     });
 

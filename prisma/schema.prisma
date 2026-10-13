@@ -39,6 +39,8 @@ model Wedding {
   media              Media[]
   rsvpQuestions      RsvpQuestion[]
   members            WeddingMember[]
+  busesEnabled Boolean      @default(false)
+  buses        WeddingBus[]
 
   @@map("weddings")
 }
@@ -88,6 +90,37 @@ model Guest {
   @@map("guests")
 }
 
+model WeddingBus {
+  id        String    @id @default(uuid()) @db.Uuid
+  weddingId String    @db.Uuid
+  name      String
+  sortOrder Int       @default(0)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  wedding Wedding   @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+  stops   BusStop[]
+
+  @@index([weddingId])
+  @@map("wedding_buses")
+}
+
+model BusStop {
+  id        String   @id @default(uuid()) @db.Uuid
+  busId     String   @db.Uuid
+  name      String
+  address   String?
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  bus   WeddingBus @relation(fields: [busId], references: [id], onDelete: Cascade)
+  rsvps Rsvp[]
+
+  @@index([busId])
+  @@map("bus_stops")
+}
+
 model Rsvp {
   id          String       @id @default(uuid()) @db.Uuid
   guestId     String       @unique @db.Uuid
@@ -97,6 +130,10 @@ model Rsvp {
   updatedAt   DateTime     @updatedAt
   answers     RsvpAnswer[]
   guest       Guest        @relation(fields: [guestId], references: [id], onDelete: Cascade)
+  needsBus  Boolean   @default(false)
+busStopId String?   @db.Uuid
+busStop   BusStop?  @relation(fields: [busStopId], references: [id], onDelete: SetNull)
+busPhone String?
 
   @@map("rsvps")
 }

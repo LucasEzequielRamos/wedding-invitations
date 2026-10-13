@@ -24,8 +24,14 @@ export function FaqBotanicalEditorial({ config }: Props) {
                 <div className="flex items-center justify-between gap-4">
                   <span>{item.question}</span>
 
-                  <span className="font-altivo text-sm transition-transform duration-200 group-open:rotate-45 md:text-lg">
-                  ^
+                  <span className="font-altivo  flex h-4 w-4
+                  md:h-6 md:w-6 items-center justify-center rounded-full 
+                 transition-transform duration-200
+                  group-open:rotate-180 md:text-lg">
+                 <svg width="26" height="17" viewBox="0 0 26 17" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M1.5 1.5L13 14.5L24.5 1.5" strokeWidth="3" strokeLinecap="round" stroke="#283517"/>
+                </svg>
+
                   </span>
                 </div>
               </summary>

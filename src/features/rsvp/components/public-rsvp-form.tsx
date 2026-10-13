@@ -3,10 +3,21 @@
 import { DESIGN_01_ASSETS } from "@/features/invitations/utils/design-assets";
 import { useState } from "react";
 
+type BusStopOption = {
+  id: string;
+  name: string;
+  address: string | null;
+  busName: string;
+};
+
 type RsvpData = {
   weddingId: string;
   guestId: string;
   guestName: string;
+  busesEnabled: boolean;
+  stops: BusStopOption[];
+  needsBus: boolean;
+  busStopId: string | null;
 };
 
 type Props = {
@@ -18,113 +29,109 @@ export function PublicRsvpForm({ slug }: Props) {
   const [phone, setPhone] = useState("");
 
   const [status, setStatus] = useState<
-    "ATTENDING" | "NOT_ATTENDING"
-  >("ATTENDING");
+    "ATTENDING" | "NOT_ATTENDING" | ""
+  >("");
 
   const [rsvp, setRsvp] = useState<RsvpData | null>(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
-  const [textoBoton, setTextoBoton] = useState("Buscar invitado");
-  const [textoBotonEnCarga, setTextoBotonEnCarga] = useState("Buscando invitado...");
+  
 
-  async function searchGuest() {
-    setLoading(true);
-    setMessage("");
+ async function searchGuest(): Promise<RsvpData | null> {
+  const parts = fullName.trim().split(/\s+/);
 
-    const parts = fullName.trim().split(/\s+/);
+  if (parts.length < 2) {
+    setMessage("Ingresá tu nombre completo.");
+    return null;
+  }
 
-    if (parts.length < 2) {
-      setMessage("Ingresá tu nombre completo.");
-      setLoading(false);
-      return;
+  setLoading(true);
+  setMessage("");
+
+  try {
+    const response = await fetch(`/api/invitacion/${slug}/rsvp`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        firstName: parts[0],
+        lastName: parts.slice(1).join(" "),
+      }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      setMessage(data.error ?? "No encontramos tu invitación.");
+      return null;
     }
 
-    const firstName = parts[0];
-    const lastName = parts.slice(1).join(" ");
+    setRsvp(data);
+    return data;
+  } catch {
+    setMessage("Ocurrió un error. Intentá nuevamente.");
+    return null;
+  } finally {
+    setLoading(false);
+  }
+}
 
-    try {
-      const response = await fetch(`/api/invitacion/${slug}/rsvp`, {
+async function submit() {
+  if (!status) {
+    setMessage("Por favor, elegí una opción de asistencia.");
+    return;
+  }
+
+  if (!fullName.trim()) {
+    setMessage("Ingresá tu nombre completo.");
+    return;
+  }
+
+  setLoading(true);
+  setMessage("");
+
+  try {
+    // Usa el invitado ya encontrado o lo busca ahora.
+    const guest = rsvp ?? await searchGuest();
+
+    if (!guest) return;
+
+    const response = await fetch(
+      `/api/invitacion/${slug}/rsvp/submit`,
+      {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          firstName,
-          lastName,
+          weddingId: guest.weddingId,
+          guestId: guest.guestId,
+          status,
+          answers: [],
         }),
-      });
+      },
+    );
 
-      const data = await response.json();
-      
+    const data = await response.json();
 
-      if (!response.ok) {
-        setMessage(data.error ?? "No encontramos tu invitación.");
-        return;
-      }
-
-      setRsvp(data);
-    } catch {
-      setMessage("Ocurrió un error. Intentá nuevamente.");
-    } finally {
-      setLoading(false);
-      setMessage("Invitado encontrado. Vuelva a apretar para confirmar su asistencia.");
-      setTextoBoton("Confirmar asistencia");
-      setTextoBotonEnCarga("Confirmando...");
-
-
-    }
-  }
-
-  async function submit() {
-    if (!rsvp) {
-      await searchGuest();
+    if (!response.ok) {
+      setMessage(data.error ?? "No pudimos guardar tu respuesta.");
       return;
     }
-
-    setLoading(true);
-    setMessage("");
-
-    try {
-      const response = await fetch(
-        `/api/invitacion/${slug}/rsvp/submit`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            weddingId: rsvp.weddingId,
-            guestId: rsvp.guestId,
-            status,
-            answers: [],
-          }),
-        },
-      );
-
-      const data = await response.json();
-
-      console.log("data de response de submit", data)
-
-      if (!response.ok) {
-        setMessage(
-          data.error ?? "No pudimos guardar tu respuesta.",
-        );
-        return;
-      }
-
-      setMessage("¡Gracias por confirmar!");
-    } catch {
-      setMessage("Ocurrió un error. Intentá nuevamente.");
-    } finally {
-      setLoading(false);
-      setFullName("");
-      setPhone("");
-    }
+    
+    setMessage("¡Gracias por confirmar!");
+    setFullName("");
+    setPhone("");
+    setRsvp(null);
+    setStatus("");
+  } catch {
+    setMessage("Ocurrió un error. Intentá nuevamente.");
+  } finally {
+    setLoading(false);
   }
+}
 
   return (
     <div
       className="
+      -mt-5
         flex
         w-full
         max-w-3xl
@@ -136,8 +143,8 @@ export function PublicRsvpForm({ slug }: Props) {
       "
     >
       {/* Título */}
-     <img src={DESIGN_01_ASSETS.desktop.teVemos} alt="¿Te vemos?" className="w-full max-w-md hidden md:block" />
-     <img src={DESIGN_01_ASSETS.mobile.teVemos} alt="¿Te vemos?" className="w-full max-w-3xs md:hidden" />
+     <img src={DESIGN_01_ASSETS.desktop.teVemos} alt="¿Te vemos?" className="w-full max-w-md hidden md:block -pt-10" />
+     <img src={DESIGN_01_ASSETS.mobile.teVemos} alt="¿Te vemos?" className="w-full max-w-45 pt-10  md:hidden " />
 
       {/* Asistencia */}
       <div
@@ -221,7 +228,7 @@ export function PublicRsvpForm({ slug }: Props) {
       {/* Inputs */}
       <div
         className="
-          mt-4
+          mt-3
           flex
           w-9/12
           max-w-2xl
@@ -234,10 +241,12 @@ export function PublicRsvpForm({ slug }: Props) {
         <input
           type="text"
           value={fullName}
-          onChange={(event) => setFullName(event.target.value)}
+          onChange={(event) =>{ setFullName(event.target.value);
+          setRsvp(null)}
+          }
           placeholder="Nombre completo"
           className="
-            h-9
+            h-8
             w-full
             rounded-full
             border-0
@@ -260,7 +269,7 @@ export function PublicRsvpForm({ slug }: Props) {
           onChange={(event) => setPhone(event.target.value)}
           placeholder="Telefono"
           className="
-            h-9
+            h-8
             w-full
             rounded-full
             border-0
@@ -288,7 +297,7 @@ export function PublicRsvpForm({ slug }: Props) {
           rounded-full
           bg-(--design-01-dark)
           px-8
-          py-2
+          py-1
           font-script
           text-sm
           text-(--design-01-white)
@@ -300,13 +309,18 @@ export function PublicRsvpForm({ slug }: Props) {
           md:text-xl
         "
       >
-        {loading ? textoBotonEnCarga : textoBoton}
+        {loading ? "Confirmando..." : "Confirmar asistencia"}
       </button>
 
-      {/* Aclaración */}
-      <p
+      <div className="mt-2 flex min-h-12 w-full items-start justify-center px-2 md:min-h-6">
+
+    {message ? (
+      <p className="text-center font-altivo text-[0.6rem] leading-relaxed md:text-xs max-w-[80%]">
+        {message}
+    </p>
+  ): (<p
         className="
-          mt-3
+          
           max-w-xs
           text-center
           font-altivo
@@ -321,13 +335,8 @@ export function PublicRsvpForm({ slug }: Props) {
         Recordá llenar el formulario por persona,
         <br />
         tenés tiempo hasta el 30/12
-      </p>
-
-      {message && (
-        <p className="mt-2 font-altivo text-[0.6rem] md:text-xs">
-          {message}
-        </p>
-      )}
+      </p>)}
+</div>
     </div>
   );
 }

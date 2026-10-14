@@ -7,7 +7,7 @@ type Props = {
 
 export function RsvpBotanicalEditorial({ slug }: Props) {
   return (
-    <section className="relative min-h-[500px] mt-8 h-auto w-full @container bg-(--design-01-background) md:mt-30 md:h-240">
+    <section className="relative min-h-125 mt-8 h-auto w-full @container bg-(--design-01-background) md:mt-30 md:h-240">
       {/* Fondo desktop */}
       <div
         className="absolute inset-0 hidden bg-contain bg-top bg-no-repeat md:block"
@@ -25,7 +25,7 @@ export function RsvpBotanicalEditorial({ slug }: Props) {
       />
 
       {/* Contenido */}
-      <div className="relative z-10 flex min-h-[500px] w-full items-center justify-center py-8 md:h-full md:py-0">
+      <div className="relative z-10 flex min-h-125 w-full items-center justify-center py-8 md:h-full md:py-0">
         <InvitationRsvp slug={slug} />
       </div>
     </section>

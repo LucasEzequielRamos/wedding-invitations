@@ -18,7 +18,7 @@ export function InvitationEvents({ events }: Props) {
 
   return (
     <section className="bg-[#FDF6DC] px-6 py-16 text-[#283517]">
-      <div className="mx-auto max-w-[1200px]">
+      <div className="mx-auto max-w-300">
         <div className="space-y-10">
           {events.map(event => (
             <article key={event.id}>

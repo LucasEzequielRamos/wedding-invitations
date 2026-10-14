@@ -2,6 +2,8 @@
 
 import { DESIGN_01_ASSETS } from "@/features/invitations/utils/design-assets";
 import { useState } from "react";
+import { ToastViewport, useToast } from "@/components/ui/toast";
+import { success } from "zod";
 
 type BusStopOption = {
   id: string;
@@ -34,19 +36,18 @@ export function PublicRsvpForm({ slug }: Props) {
 
   const [rsvp, setRsvp] = useState<RsvpData | null>(null);
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState("");
+  const { toast, showToast, dismissToast } = useToast();
   
 
  async function searchGuest(): Promise<RsvpData | null> {
   const parts = fullName.trim().split(/\s+/);
 
   if (parts.length < 2) {
-    setMessage("Ingresá tu nombre completo.");
+    showToast("Ingresá tu nombre completo.");
     return null;
   }
 
   setLoading(true);
-  setMessage("");
 
   try {
     const response = await fetch(`/api/invitacion/${slug}/rsvp`, {
@@ -61,33 +62,31 @@ export function PublicRsvpForm({ slug }: Props) {
     const data = await response.json();
 
     if (!response.ok) {
-      setMessage(data.error ?? "No encontramos tu invitación.");
+      showToast(data.error ?? "No encontramos tu invitación.");
       return null;
     }
 
     setRsvp(data);
     return data;
   } catch {
-    setMessage("Ocurrió un error. Intentá nuevamente.");
+    showToast("Ocurrió un error. Intentá nuevamente.");
     return null;
   } finally {
-    setLoading(false);
   }
 }
 
 async function submit() {
   if (!status) {
-    setMessage("Por favor, elegí una opción de asistencia.");
+    showToast("Por favor, elegí una opción de asistencia.");
     return;
   }
 
   if (!fullName.trim()) {
-    setMessage("Ingresá tu nombre completo.");
+    showToast("Ingresá tu nombre completo.");
     return;
   }
 
   setLoading(true);
-  setMessage("");
 
   try {
     // Usa el invitado ya encontrado o lo busca ahora.
@@ -112,19 +111,20 @@ async function submit() {
     const data = await response.json();
 
     if (!response.ok) {
-      setMessage(data.error ?? "No pudimos guardar tu respuesta.");
+      showToast(data.error ?? "No pudimos guardar tu respuesta.");
       return;
     }
     
-    setMessage("¡Gracias por confirmar!");
+    showToast("¡Gracias por confirmar!", "success");
     setFullName("");
     setPhone("");
     setRsvp(null);
     setStatus("");
+    
   } catch {
-    setMessage("Ocurrió un error. Intentá nuevamente.");
+    showToast("Ocurrió un error. Intentá nuevamente.");
   } finally {
-    setLoading(false);
+    setLoading(false)
   }
 }
 
@@ -142,6 +142,7 @@ async function submit() {
         text-(--design-01-dark)
       "
     >
+      <ToastViewport toast={toast} onClose={dismissToast} />
       {/* Título */}
      <img src={DESIGN_01_ASSETS.desktop.teVemos} alt="¿Te vemos?" className="w-full max-w-md hidden md:block -pt-10" />
      <img src={DESIGN_01_ASSETS.mobile.teVemos} alt="¿Te vemos?" className="w-full max-w-45 pt-10  md:hidden " />
@@ -314,11 +315,7 @@ async function submit() {
 
       <div className="mt-2 flex min-h-12 w-full items-start justify-center px-2 md:min-h-6">
 
-    {message ? (
-      <p className="text-center font-altivo text-[0.6rem] leading-relaxed md:text-xs max-w-[80%]">
-        {message}
-    </p>
-  ): (<p
+   <p
         className="
           
           max-w-xs
@@ -335,7 +332,7 @@ async function submit() {
         Recordá llenar el formulario por persona,
         <br />
         tenés tiempo hasta el 30/12
-      </p>)}
+      </p>
 </div>
     </div>
   );

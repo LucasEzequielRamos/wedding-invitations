@@ -4,7 +4,7 @@
 import { useEffect, useState } from "react";
 
 type Props = {
-  targetDate: Date | string;
+  targetDate: Date | string | null;
 };
 
 type TimeLeft = {
@@ -14,7 +14,11 @@ type TimeLeft = {
   seconds: number;
 };
 
-function getTimeLeft(targetDate: Date | string): TimeLeft {
+function getTimeLeft(targetDate: Date | string | null): TimeLeft {
+  if (!targetDate) {
+    return { days: 0, hours: 0, minutes: 0, seconds: 0 };
+  }
+
   const target = new Date(targetDate).getTime();
   const now = Date.now();
   const difference = Math.max(target - now, 0);

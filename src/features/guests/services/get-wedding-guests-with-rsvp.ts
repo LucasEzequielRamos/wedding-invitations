@@ -1,9 +1,8 @@
+
 import { prisma } from "@/lib/db/prisma";
 import { getCurrentAuthUser } from "@/features/auth/services/get-current-user";
 
-export async function getWeddingGuestsWithRsvp(
-  weddingId: string,
-) {
+export async function getWeddingGuestsWithRsvp(weddingId: string) {
   const authUser = await getCurrentAuthUser();
 
   if (!authUser) {
@@ -19,6 +18,10 @@ export async function getWeddingGuestsWithRsvp(
         },
       },
     },
+    select: {
+      id: true,
+      plan: true,
+    },
   });
 
   if (!wedding) {
@@ -26,23 +29,12 @@ export async function getWeddingGuestsWithRsvp(
   }
 
   if (wedding.plan !== "FULL") {
-    throw new Error(
-      "Esta boda no tiene RSVP habilitado",
-    );
+    throw new Error("Esta boda no tiene RSVP habilitado");
   }
 
   return prisma.guest.findMany({
-    where: {
-      weddingId,
-    },
-    orderBy: [
-      {
-        lastName: "asc",
-      },
-      {
-        firstName: "asc",
-      },
-    ],
+    where: { weddingId },
+    orderBy: [{ lastName: "asc" }, { firstName: "asc" }],
     select: {
       id: true,
       firstName: true,
@@ -57,6 +49,19 @@ export async function getWeddingGuestsWithRsvp(
         select: {
           status: true,
           respondedAt: true,
+          needsBus: true,
+          busPhone: true,
+          busStop: {
+            select: {
+              id: true,
+              name: true,
+              bus: {
+                select: {
+                  name: true,
+                },
+              },
+            },
+          },
           answers: {
             select: {
               questionId: true,

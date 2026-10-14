@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useState } from "react";
 import { DESIGN_01_ASSETS } from "../../utils/design-assets";
+import { ToastViewport, useToast } from "@/components/ui/toast";
 
 type Props = {
   slug: string;
@@ -13,16 +14,19 @@ export function MicrosBotanicalEditorial({ slug }: Props) {
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
   const [needsBus, setNeedsBus] = useState(false);
-const [busStopId, setBusStopId] = useState<string | null>(null);
+  const [busStopId, setBusStopId] = useState<string | null>(null);
+    const { toast, showToast, dismissToast } = useToast();
+  
+
 
   async function submit() {
   if (!stop) {
-    alert("Elegí una parada.");
+    showToast("Elegí una parada.");
     return;
   }
 
   if (!fullName.trim() || !phone.trim()) {
-    alert("Ingresá tu nombre completo y teléfono.");
+    showToast("Ingresá tu nombre completo y teléfono.");
     return;
   }
 
@@ -30,7 +34,7 @@ const [busStopId, setBusStopId] = useState<string | null>(null);
     const parts = fullName.trim().split(/\s+/);
 
     if (parts.length < 2) {
-      alert("Ingresá tu nombre completo.");
+      showToast("Ingresá tu nombre completo.");
       return;
     }
 
@@ -48,7 +52,7 @@ const [busStopId, setBusStopId] = useState<string | null>(null);
     const guest = await lookupResponse.json();
 
     if (!lookupResponse.ok) {
-      alert(guest.error ?? "No encontramos tu invitación.");
+      showToast(guest.error ?? "No encontramos tu invitación.");
       return;
     }
 
@@ -72,7 +76,7 @@ const [busStopId, setBusStopId] = useState<string | null>(null);
     });
 
     if (!selectedStop) {
-      alert("La parada elegida no está configurada para esta boda.");
+      showToast("La parada elegida no está configurada para esta boda.");
       return;
     }
 
@@ -89,23 +93,24 @@ const [busStopId, setBusStopId] = useState<string | null>(null);
     const data = await response.json();
 
     if (!response.ok) {
-      alert(data.error ?? "No se pudo registrar el viaje.");
+      showToast(data.error ?? "No se pudo registrar el viaje.");
       return;
     }
 
-    alert(data.message);
+    showToast(data.message, "success");
     setStop("");
     setFullName("");
     setPhone("");
     setNeedsBus(false);
     setBusStopId(null);
   } catch {
-    alert("Ocurrió un error. Intentá nuevamente.");
+    showToast("Ocurrió un error. Intentá nuevamente.");
   }
 }
 
   return (
     <section className="w-full  bg-(--design-01-background) text-(--design-01-dark)">
+      <ToastViewport toast={toast} onClose={dismissToast}/>
       <div className="relative mx-auto w-full mt-24">
         {/* Decoración + título */}
         <Image

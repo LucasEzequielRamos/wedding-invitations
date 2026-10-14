@@ -44,7 +44,7 @@ type InvitationSectionRendererProps = {
   invitation: {
     slug: string;
     name: string;
-    weddingDate: Date | string ;
+    weddingDate: Date | string | null;
     events: InvitationEvent[];
     media: InvitationMedia[];
     gifts: InvitationGift[];

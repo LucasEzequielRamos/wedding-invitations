@@ -1,13 +1,13 @@
-
 import { prisma } from "@/lib/db/prisma";
+import { normalizeGuestName } from "../utils/normalize-guest-name";
 
 export async function getPublicRsvp(
   slug: string,
   firstName: string,
   lastName: string,
 ) {
-  const first = firstName.trim();
-  const last = lastName.trim();
+  const first = normalizeGuestName(firstName);
+  const last = normalizeGuestName(lastName);
 
   if (!first || !last) {
     throw new Error("Nombre y apellido son obligatorios");
@@ -59,11 +59,7 @@ export async function getPublicRsvp(
   }
 
   const guests = await prisma.guest.findMany({
-    where: {
-      weddingId: wedding.id,
-      firstName: { equals: first, mode: "insensitive" },
-      lastName: { equals: last, mode: "insensitive" },
-    },
+    where: { weddingId: wedding.id },
     select: {
       id: true,
       firstName: true,
@@ -75,23 +71,33 @@ export async function getPublicRsvp(
           needsBus: true,
           busStopId: true,
           answers: {
-            select: { questionId: true, answer: true },
+            select: {
+              questionId: true,
+              answer: true,
+            },
           },
         },
       },
     },
   });
 
-  if (guests.length === 0) {
+  const matches = guests.filter(
+    (guest) =>
+      normalizeGuestName(guest.firstName) === first &&
+      normalizeGuestName(guest.lastName) === last,
+  );
+
+  if (matches.length === 0) {
     throw new Error("No encontramos un invitado con esos datos");
   }
-  if (guests.length > 1) {
+
+  if (matches.length > 1) {
     throw new Error(
       "Hay más de un invitado con ese nombre. Ingresá el nombre completo.",
     );
   }
 
-  const guest = guests[0];
+  const guest = matches[0];
 
   return {
     wedding: {

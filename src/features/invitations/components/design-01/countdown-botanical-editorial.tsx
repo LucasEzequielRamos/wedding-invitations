@@ -4,11 +4,12 @@ type Props = {
   config: {
     title?: string;
   };
-  weddingDate: Date | string;
+  weddingDate: Date | string | null;
 };
 
 export function CountdownBotanicalEditorial({ config, weddingDate }: Props) {
   if (!weddingDate) {
+    
     return null;
   }
 

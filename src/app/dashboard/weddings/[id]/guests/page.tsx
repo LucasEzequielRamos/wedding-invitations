@@ -38,6 +38,21 @@ type Preview = {
   invalid: number;
 };
 
+type Confirmation = {
+  title: string;
+  message: string;
+  confirmLabel: string;
+  destructive?: boolean;
+  onConfirm: () => void | Promise<void>;
+};
+
+function normalizeSearch(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLocaleLowerCase("es");
+}
+
 export default function GuestsPage() {
   const params = useParams<{ id: string }>();
   const weddingId = params.id;
@@ -65,6 +80,7 @@ export default function GuestsPage() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [working, setWorking] = useState(false);
+  const [confirmation, setConfirmation] =  useState<Confirmation | null>(null);
 
  const loadData = useCallback(
   async (initial = false) => {
@@ -229,13 +245,6 @@ export default function GuestsPage() {
   async function removeGuest(guest: Guest) {
     const fullName = `${guest.firstName} ${guest.lastName}`;
 
-    if (
-      !window.confirm(
-        `¿Seguro que querés eliminar a ${fullName}?\n\nSe borrarán también su confirmación de asistencia y sus respuestas. Esta acción no se puede deshacer.`,
-      )
-    ) {
-      return;
-    }
 
     setWorking(true);
 
@@ -266,6 +275,19 @@ export default function GuestsPage() {
       setWorking(false);
     }
   }
+
+  function askRemoveGuest(guest: Guest) {
+  const fullName = `${guest.firstName} ${guest.lastName}`;
+
+  setConfirmation({
+    title: "Eliminar invitado",
+    message:
+      `¿Querés eliminar a ${fullName}? También se borrarán su confirmación de asistencia y sus respuestas. Esta acción no se puede deshacer.`,
+    confirmLabel: "Eliminar invitado",
+    destructive: true,
+    onConfirm: () => removeGuest(guest),
+  });
+}
 
   async function createGroup(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -362,15 +384,6 @@ async function saveGroup(event: FormEvent<HTMLFormElement>) {
 }
 
 async function removeGroup(group: Group) {
-  const guestCount = group.guests?.length ?? 0;
-
-  const confirmed = window.confirm(
-    `¿Eliminar el grupo "${group.name}"?\n\n` +
-      `${guestCount} invitado(s) quedarán sin grupo. ` +
-      "Sus datos y confirmaciones se conservarán.",
-  );
-
-  if (!confirmed) return;
 
   setWorking(true);
 
@@ -400,6 +413,21 @@ async function removeGroup(group: Group) {
     } finally {
       setWorking(false);
     }
+}
+
+function askRemoveGroup(group: Group) {
+  const guestCount = group.guests?.length ?? 0;
+
+  setConfirmation({
+    title: "Eliminar grupo",
+    message:
+      `¿Querés eliminar el grupo "${group.name}"? ` +
+      `${guestCount} invitado(s) quedarán sin grupo. ` +
+      "Sus datos y confirmaciones se conservarán.",
+    confirmLabel: "Eliminar grupo",
+    destructive: true,
+    onConfirm: () => removeGroup(group),
+  });
 }
 
 
@@ -450,7 +478,6 @@ async function removeGroup(group: Group) {
       return;
     }
 
-    if (!window.confirm(`¿Importar ${preview.valid} invitados?`)) return;
 
     setWorking(true);
 
@@ -491,13 +518,26 @@ async function removeGroup(group: Group) {
     }
   }
 
-  const normalizedSearch = search.trim().toLocaleLowerCase("es");
+  function askImportExcel() {
+  if (!preview || preview.valid === 0 || preview.invalid > 0) return;
 
-  const filteredGuests = guests.filter((guest) =>
-    `${guest.firstName} ${guest.lastName} ${guest.group?.name ?? ""}`
-      .toLocaleLowerCase("es")
-      .includes(normalizedSearch),
-  );
+  setConfirmation({
+    title: "Confirmar importación",
+    message:
+      `Vas a importar ${preview.valid} invitados. ` +
+      "Revisá la vista previa antes de continuar.",
+    confirmLabel: "Importar invitados",
+    onConfirm: importExcel,
+  });
+}
+
+ const normalizedSearch = normalizeSearch(search.trim());
+
+const filteredGuests = guests.filter((guest) =>
+  normalizeSearch(
+    `${guest.firstName} ${guest.lastName} ${guest.group?.name ?? ""}`,
+  ).includes(normalizedSearch),
+);
 
   if (loading) {
     return (
@@ -510,6 +550,65 @@ async function removeGroup(group: Group) {
   return (
     <main className="mx-auto max-w-6xl space-y-8 p-6">
       <ToastViewport toast={toast} onClose={dismissToast} />
+
+      {confirmation && (
+  <div
+    className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4"
+    onClick={() => {
+      if (!working) setConfirmation(null);
+    }}
+  >
+    <section
+      role="alertdialog"
+      aria-modal="true"
+      aria-labelledby="confirmation-title"
+      aria-describedby="confirmation-message"
+      className="w-full max-w-md space-y-5 rounded-2xl border bg-white p-6 shadow-2xl"
+      onClick={(event) => event.stopPropagation()}
+    >
+      <div>
+        <h2 id="confirmation-title" className="text-lg font-semibold">
+          {confirmation.title}
+        </h2>
+
+        <p
+          id="confirmation-message"
+          className="mt-2 text-sm leading-6 text-gray-600"
+        >
+          {confirmation.message}
+        </p>
+      </div>
+
+      <div className="flex justify-end gap-3">
+        <button
+          type="button"
+          disabled={working}
+          onClick={() => setConfirmation(null)}
+          className="rounded-lg border px-4 py-2 text-sm font-medium hover:bg-gray-50 disabled:opacity-50"
+        >
+          Cancelar
+        </button>
+
+        <button
+          type="button"
+          disabled={working}
+          onClick={() => {
+            const action = confirmation.onConfirm;
+            setConfirmation(null);
+            void action();
+          }}
+          className={`rounded-lg px-4 py-2 text-sm font-semibold text-white disabled:opacity-50 ${
+            confirmation.destructive
+              ? "bg-red-600 hover:bg-red-700"
+              : "bg-gray-900 hover:bg-gray-700"
+          }`}
+        >
+          {working ? "Procesando..." : confirmation.confirmLabel}
+        </button>
+      </div>
+    </section>
+  </div>
+)}
 
       <header>
         <h1 className="text-3xl font-bold">Invitados</h1>
@@ -525,9 +624,17 @@ async function removeGroup(group: Group) {
       </header>
 
       {editingGuestId && (
-        <section className="space-y-4 rounded-xl border border-blue-200 bg-blue-50/40 p-5">
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+    <section
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="edit-guest-title"
+      className="max-h-[90vh] w-full max-w-2xl space-y-4 overflow-y-auto rounded-2xl border bg-white p-6 shadow-2xl"
+    >
           <div>
-            <h2 className="text-lg font-semibold">Editar invitado</h2>
+            <h2 id="edit-guest-title" className="text-lg font-semibold">
+  Editar invitado
+</h2>
             <p className="mt-1 text-sm text-gray-500">
               Modificá sus datos y guardá los cambios.
             </p>
@@ -608,8 +715,9 @@ async function removeGroup(group: Group) {
               </button>
             </div>
           </form>
-        </section>
-      )}
+            </section>
+  </div>
+)}
 
       <section className="grid items-start gap-6 md:grid-cols-2">
         <form onSubmit={createGuest} className="space-y-4 rounded-xl border p-5">
@@ -738,7 +846,7 @@ async function removeGroup(group: Group) {
 
             <button
               type="button"
-              onClick={() => void removeGroup(group)}
+              onClick={() => askRemoveGroup(group)}
               disabled={working}
               className="rounded-md border border-red-300 px-3 py-1.5 text-red-700 disabled:opacity-50"
             >
@@ -770,16 +878,32 @@ async function removeGroup(group: Group) {
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
-          <input
-            id="excel-file"
-            type="file"
-            accept=".xlsx,.xls"
-            onChange={(event) => {
-              setFile(event.target.files?.[0] ?? null);
-              setPreview(null);
-            }}
-            className="block max-w-full text-sm"
-          />
+          <div className="flex min-w-0 flex-1 flex-wrap items-center gap-3">
+  <input
+    id="excel-file"
+    type="file"
+    accept=".xlsx,.xls"
+    onChange={(event) => {
+      setFile(event.target.files?.[0] ?? null);
+      setPreview(null);
+    }}
+    className="sr-only"
+  />
+
+  <label
+    htmlFor="excel-file"
+    className="inline-flex shrink-0 cursor-pointer items-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-50"
+  >
+    Seleccionar archivo
+  </label>
+
+  <span
+    className="min-w-0 flex-1 truncate rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-600"
+    title={file?.name ?? "Ningún archivo seleccionado"}
+  >
+    {file?.name ?? "Ningún archivo seleccionado"}
+  </span>
+</div>
 
           <button
             type="button"
@@ -840,7 +964,7 @@ async function removeGroup(group: Group) {
 
             <button
               type="button"
-              onClick={importExcel}
+              onClick={askImportExcel}
               disabled={working || preview.valid === 0 || preview.invalid > 0}
               className="rounded-md bg-black px-4 py-2 text-white disabled:opacity-50"
             >
@@ -912,7 +1036,7 @@ async function removeGroup(group: Group) {
 
                       <button
                         type="button"
-                        onClick={() => void removeGuest(guest)}
+                        onClick={() => askRemoveGuest(guest)}
                         disabled={working}
                         className="rounded-md border border-red-300 px-3 py-1.5 text-red-700 hover:bg-red-50 disabled:opacity-50"
                       >

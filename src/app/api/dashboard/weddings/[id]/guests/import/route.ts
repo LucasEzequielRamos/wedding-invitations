@@ -29,12 +29,29 @@ export async function POST(request: Request, { params }: Context) {
       { status: 201 },
     );
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Error al importar invitados";
+    const message = error instanceof Error ? error.message : "";
+    console.log(error)
 
-    const status = message === "No autenticado" ? 401 :
-      message === "Boda no encontrada" ? 404 : 400;
-
-    return NextResponse.json({ error: message }, { status });
+  if (message === "No autenticado") {
+    return NextResponse.json(
+      { error: "Iniciá sesión para continuar." },
+      { status: 401 },
+    );
   }
+
+  if (message === "Boda no encontrada") {
+    return NextResponse.json(
+      { error: "No encontramos esta boda." },
+      { status: 404 },
+    );
+  }
+
+  return NextResponse.json(
+    {
+      error:
+        message,
+    },
+    { status: 400 },
+  );
+}
 }

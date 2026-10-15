@@ -38,12 +38,36 @@ export async function POST(request: Request, { params }: Context) {
 
     return NextResponse.json(preview);
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Error al leer el Excel";
+  const message =
+    error instanceof Error ? error.message : "";
 
-    const status = message === "No autenticado" ? 401 :
-      message === "Boda no encontrada" ? 404 : 400;
-
-    return NextResponse.json({ error: message }, { status });
+  if (message === "No autenticado") {
+    return NextResponse.json(
+      { error: "Iniciá sesión para continuar." },
+      { status: 401 },
+    );
   }
+
+  if (message === "Boda no encontrada") {
+    return NextResponse.json(
+      { error: "No encontramos esta boda." },
+      { status: 404 },
+    );
+  }
+
+  if (message === "El Excel no contiene hojas.") {
+    return NextResponse.json(
+      { error: "El archivo no contiene ninguna hoja con datos." },
+      { status: 400 },
+    );
+  }
+
+  return NextResponse.json(
+    {
+      error:
+        "No pudimos leer el archivo. Verificá que sea un Excel válido y que contenga las columnas Grupo, Nombre y Apellido.",
+    },
+    { status: 400 },
+  );
+}
 }

@@ -70,7 +70,7 @@ export function ToastViewport({
       key={toast.id}
       role="status"
       aria-live="polite"
-      className={`fixed right-4 top-4 z-[100] flex w-[calc(100%-2rem)] max-w-sm items-start gap-3 rounded-xl border p-4 shadow-lg ${styles[toast.type]}`}
+      className={`fixed right-4 top-4 z-100 flex w-[calc(100%-2rem)] max-w-sm items-start gap-3 rounded-xl border p-4 shadow-lg ${styles[toast.type]}`}
     >
       <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-white/80 font-bold">
         {icons[toast.type]}

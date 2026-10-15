@@ -2,8 +2,9 @@
 
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { useParams } from "next/navigation";
+import { ToastViewport, useToast } from "@/components/ui/toast";
 
 type Group = {
   id: string;
@@ -40,26 +41,38 @@ type Preview = {
 export default function GuestsPage() {
   const params = useParams<{ id: string }>();
   const weddingId = params.id;
+  const { toast, showToast, dismissToast } = useToast();
 
   const [guests, setGuests] = useState<Guest[]>([]);
   const [groups, setGroups] = useState<Group[]>([]);
+
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [groupId, setGroupId] = useState("");
   const [groupName, setGroupName] = useState("");
+
+  const [editingGuestId, setEditingGuestId] = useState<string | null>(null);
+  const [editFirstName, setEditFirstName] = useState("");
+  const [editLastName, setEditLastName] = useState("");
+  const [editGroupId, setEditGroupId] = useState("");
+  const [editingGroupId, setEditingGroupId] = useState<string | null>(null);
+  const [editGroupName, setEditGroupName] = useState("");
+
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<Preview | null>(null);
   const [search, setSearch] = useState("");
+
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [working, setWorking] = useState(false);
-  const [message, setMessage] = useState("");
-  const [error, setError] = useState("");
 
-  
-
-  const loadData = useCallback(async () => {
-    setLoading(true);
-    setError("");
+ const loadData = useCallback(
+  async (initial = false) => {
+    if (initial) {
+      setLoading(true);
+    } else {
+      setRefreshing(true);
+    }
 
     try {
       const [guestsResponse, groupsResponse] = await Promise.all([
@@ -67,39 +80,68 @@ export default function GuestsPage() {
         fetch(`/api/dashboard/weddings/${weddingId}/groups`),
       ]);
 
-      const guestsData = await guestsResponse.json();
-      const groupsData = await groupsResponse.json();
+      const [guestsData, groupsData] = await Promise.all([
+        guestsResponse.json(),
+        groupsResponse.json(),
+      ]);
 
-
-
-      
       if (!guestsResponse.ok) {
-        throw new Error(guestsData.error || "No se pudieron cargar los invitados");
+        throw new Error(
+          guestsData.error || "No se pudieron cargar los invitados.",
+        );
       }
 
       if (!groupsResponse.ok) {
-        throw new Error(groupsData.error || "No se pudieron cargar los grupos");
+        throw new Error(
+          groupsData.error || "No se pudieron cargar los grupos.",
+        );
       }
 
-      setGuests(guestsData);        
-        setGroups(groupsData);
-    
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Error al cargar los datos");
+      setGuests(guestsData);
+      setGroups(groupsData);
+    } catch (error) {
+      showToast(
+        error instanceof Error
+          ? error.message
+          : "No se pudieron cargar los datos.",
+        "error",
+      );
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
-  }, [weddingId]);
+  },
+  [weddingId, showToast],
+);
 
   useEffect(() => {
-    void loadData();
-  }, [loadData]);
+  void loadData(true);
+}, [loadData]);
 
-  async function createGuest(event: React.FormEvent<HTMLFormElement>) {
+  function startEditing(guest: Guest) {
+    setEditingGuestId(guest.id);
+    setEditFirstName(guest.firstName);
+    setEditLastName(guest.lastName);
+    setEditGroupId(guest.group?.id ?? "");
+    dismissToast();
+  }
+
+  function cancelEditing() {
+    setEditingGuestId(null);
+    setEditFirstName("");
+    setEditLastName("");
+    setEditGroupId("");
+  }
+
+  async function createGuest(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+
+    if (!firstName.trim() || !lastName.trim()) {
+      showToast("Ingresá el nombre y el apellido.", "warning");
+      return;
+    }
+
     setWorking(true);
-    setError("");
-    setMessage("");
 
     try {
       const response = await fetch(
@@ -108,8 +150,8 @@ export default function GuestsPage() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            firstName,
-            lastName,
+            firstName: firstName.trim(),
+            lastName: lastName.trim(),
             groupId: groupId || null,
           }),
         },
@@ -117,67 +159,123 @@ export default function GuestsPage() {
 
       const data = await response.json();
 
-      if (!response.ok) throw new Error(data.error || "No se pudo crear");
+      if (!response.ok) {
+        throw new Error(data.error || "No se pudo crear el invitado.");
+      }
 
       setFirstName("");
       setLastName("");
       setGroupId("");
-      setMessage("Invitado creado.");
+
       await loadData();
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Error al crear invitado");
+      showToast("Invitado creado correctamente.", "success");
+    } catch (error) {
+      showToast(
+        error instanceof Error ? error.message : "Error al crear el invitado.",
+        "error",
+      );
     } finally {
       setWorking(false);
     }
   }
 
-  
-async function removeGuest(guest: Guest) {
-  const fullName = `${guest.firstName} ${guest.lastName}`;
+  async function saveGuest(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
 
-  if (
-    !window.confirm(
-      `¿Seguro que querés eliminar a ${fullName}?\n\nSe borrarán también su confirmación de asistencia y sus respuestas. Esta acción no se puede deshacer.`,
-    )
-  ) {
-    return;
-  }
+    if (!editingGuestId) return;
 
-  setWorking(true);
-  setError("");
-  setMessage("");
-
-  try {
-    const response = await fetch(
-      `/api/dashboard/weddings/${weddingId}/guests/${guest.id}`,
-      { method: "DELETE" },
-    );
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.error || "No se pudo eliminar el invitado");
+    if (!editFirstName.trim() || !editLastName.trim()) {
+      showToast("Ingresá el nombre y el apellido.", "warning");
+      return;
     }
 
-    setMessage(`${fullName} fue eliminado correctamente.`);
-    await loadData();
-  } catch (error) {
-    setError(
-      error instanceof Error
-        ? error.message
-        : "Error al eliminar el invitado",
-    );
-  } finally {
-    setWorking(false);
-  }
-}
-
-
-  async function createGroup(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
     setWorking(true);
-    setError("");
-    setMessage("");
+
+    try {
+      const response = await fetch(
+        `/api/dashboard/weddings/${weddingId}/guests/${editingGuestId}`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            firstName: editFirstName.trim(),
+            lastName: editLastName.trim(),
+            groupId: editGroupId || null,
+          }),
+        },
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "No se pudo actualizar el invitado.");
+      }
+
+      cancelEditing();
+      await loadData();
+      showToast("Invitado actualizado correctamente.", "success");
+    } catch (error) {
+      showToast(
+        error instanceof Error
+          ? error.message
+          : "Error al actualizar el invitado.",
+        "error",
+      );
+    } finally {
+      setWorking(false);
+    }
+  }
+
+  async function removeGuest(guest: Guest) {
+    const fullName = `${guest.firstName} ${guest.lastName}`;
+
+    if (
+      !window.confirm(
+        `¿Seguro que querés eliminar a ${fullName}?\n\nSe borrarán también su confirmación de asistencia y sus respuestas. Esta acción no se puede deshacer.`,
+      )
+    ) {
+      return;
+    }
+
+    setWorking(true);
+
+    try {
+      const response = await fetch(
+        `/api/dashboard/weddings/${weddingId}/guests/${guest.id}`,
+        { method: "DELETE" },
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "No se pudo eliminar el invitado.");
+      }
+
+      if (editingGuestId === guest.id) cancelEditing();
+
+      await loadData();
+      showToast(`${fullName} fue eliminado correctamente.`, "success");
+    } catch (error) {
+      showToast(
+        error instanceof Error
+          ? error.message
+          : "Error al eliminar el invitado.",
+        "error",
+      );
+    } finally {
+      setWorking(false);
+    }
+  }
+
+  async function createGroup(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (!groupName.trim()) {
+      showToast("Ingresá el nombre del grupo.", "warning");
+      return;
+    }
+
+    setWorking(true);
 
     try {
       const response = await fetch(
@@ -185,33 +283,133 @@ async function removeGuest(guest: Guest) {
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name: groupName }),
+          body: JSON.stringify({ name: groupName.trim() }),
         },
       );
 
       const data = await response.json();
 
-      if (!response.ok) throw new Error(data.error || "No se pudo crear el grupo");
+      if (!response.ok) {
+        throw new Error(data.error || "No se pudo crear el grupo.");
+      }
 
       setGroupName("");
-      setMessage("Grupo creado.");
       await loadData();
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Error al crear grupo");
+      showToast("Grupo creado correctamente.", "success");
+    } catch (error) {
+      showToast(
+        error instanceof Error ? error.message : "Error al crear el grupo.",
+        "error",
+      );
     } finally {
       setWorking(false);
     }
   }
 
+  
+function startEditingGroup(group: Group) {
+  setEditingGroupId(group.id);
+  setEditGroupName(group.name);
+  dismissToast();
+}
+
+function cancelEditingGroup() {
+  setEditingGroupId(null);
+  setEditGroupName("");
+}
+
+async function saveGroup(event: FormEvent<HTMLFormElement>) {
+  event.preventDefault();
+
+  if (!editingGroupId) return;
+
+  const name = editGroupName.trim();
+
+  if (!name || name.length > 100) {
+    showToast("El nombre debe tener entre 1 y 100 caracteres.", "warning");
+    return;
+  }
+
+  setWorking(true);
+
+  try {
+    const response = await fetch(
+      `/api/dashboard/weddings/${weddingId}/groups/${editingGroupId}`,
+      {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name }),
+      },
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || "No se pudo actualizar el grupo.");
+    }
+
+    cancelEditingGroup();
+    await loadData();
+    showToast("Grupo actualizado correctamente.", "success");
+  } catch (error) {
+    showToast(
+      error instanceof Error ? error.message : "Error al actualizar el grupo.",
+      "error",
+    );
+  } finally {
+    setWorking(false);
+  }
+}
+
+async function removeGroup(group: Group) {
+  const guestCount = group.guests?.length ?? 0;
+
+  const confirmed = window.confirm(
+    `¿Eliminar el grupo "${group.name}"?\n\n` +
+      `${guestCount} invitado(s) quedarán sin grupo. ` +
+      "Sus datos y confirmaciones se conservarán.",
+  );
+
+  if (!confirmed) return;
+
+  setWorking(true);
+
+  try {
+      const response = await fetch(
+        `/api/dashboard/weddings/${weddingId}/groups/${group.id}`,
+        { method: "DELETE" },
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "No se pudo eliminar el grupo.");
+      }
+
+      if (editingGroupId === group.id) {
+        cancelEditingGroup();
+      }
+
+      await loadData();
+      showToast("Grupo eliminado correctamente.", "success");
+    } catch (error) {
+      showToast(
+        error instanceof Error ? error.message : "Error al eliminar el grupo.",
+        "error",
+      );
+    } finally {
+      setWorking(false);
+    }
+}
+
+
   async function previewExcel() {
     if (!file) {
-      setError("Seleccioná un archivo Excel.");
+      showToast("Seleccioná un archivo Excel.", "warning");
       return;
     }
 
     setWorking(true);
-    setError("");
-    setMessage("");
     setPreview(null);
 
     try {
@@ -225,29 +423,36 @@ async function removeGuest(guest: Guest) {
 
       const data = await response.json();
 
-      if (!response.ok) throw new Error(data.error || "No se pudo leer el Excel");
+      if (!response.ok) {
+        throw new Error(data.error || "No se pudo leer el Excel.");
+      }
 
       setPreview(data);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Error al previsualizar");
+      showToast("Archivo procesado. Revisá la vista previa.", "success");
+    } catch (error) {
+      showToast(
+        error instanceof Error ? error.message : "Error al previsualizar.",
+        "error",
+      );
     } finally {
       setWorking(false);
     }
   }
 
   async function importExcel() {
-    if (!preview || preview.valid === 0) return;
+    if (!preview || preview.valid === 0) {
+      showToast("No hay invitados válidos para importar.", "warning");
+      return;
+    }
 
     if (preview.invalid > 0) {
-      setError("Corregí los errores del Excel antes de importar.");
+      showToast("Corregí los errores del Excel antes de importar.", "warning");
       return;
     }
 
     if (!window.confirm(`¿Importar ${preview.valid} invitados?`)) return;
 
     setWorking(true);
-    setError("");
-    setMessage("");
 
     try {
       const response = await fetch(
@@ -261,55 +466,152 @@ async function removeGuest(guest: Guest) {
 
       const data = await response.json();
 
-      if (!response.ok) throw new Error(data.error || "No se pudo importar");
+      if (!response.ok) {
+        throw new Error(data.error || "No se pudo importar el archivo.");
+      }
 
-      setMessage(`Se importaron ${data.imported} invitados.`);
       setFile(null);
       setPreview(null);
 
-      const input = document.getElementById("excel-file") as HTMLInputElement | null;
+      const input = document.getElementById(
+        "excel-file",
+      ) as HTMLInputElement | null;
+
       if (input) input.value = "";
 
       await loadData();
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Error al importar");
+      showToast(`Se importaron ${data.imported} invitados.`, "success");
+    } catch (error) {
+      showToast(
+        error instanceof Error ? error.message : "Error al importar.",
+        "error",
+      );
     } finally {
       setWorking(false);
     }
   }
 
+  const normalizedSearch = search.trim().toLocaleLowerCase("es");
+
   const filteredGuests = guests.filter((guest) =>
     `${guest.firstName} ${guest.lastName} ${guest.group?.name ?? ""}`
-      .toLowerCase()
-      .includes(search.toLowerCase()),
+      .toLocaleLowerCase("es")
+      .includes(normalizedSearch),
   );
 
   if (loading) {
-    return <main className="p-6">Cargando invitados...</main>;
+    return (
+      <main className="p-6">
+        <p className="text-sm text-gray-500">Cargando invitados...</p>
+      </main>
+    );
   }
 
   return (
     <main className="mx-auto max-w-6xl space-y-8 p-6">
+      <ToastViewport toast={toast} onClose={dismissToast} />
+
       <header>
         <h1 className="text-3xl font-bold">Invitados</h1>
         <p className="mt-2 text-sm text-gray-500">
           Administrá la lista, los grupos y las importaciones.
         </p>
+
+        {refreshing && (
+          <p className="mt-2 text-xs text-gray-500" role="status">
+            Actualizando invitados...
+          </p>
+        )}
       </header>
 
-      {error && (
-        <p role="alert" className="rounded-md bg-red-50 p-3 text-sm text-red-700">
-          {error}
-        </p>
+      {editingGuestId && (
+        <section className="space-y-4 rounded-xl border border-blue-200 bg-blue-50/40 p-5">
+          <div>
+            <h2 className="text-lg font-semibold">Editar invitado</h2>
+            <p className="mt-1 text-sm text-gray-500">
+              Modificá sus datos y guardá los cambios.
+            </p>
+          </div>
+
+          <form onSubmit={saveGuest} className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-1">
+              <label
+                htmlFor="edit-first-name"
+                className="text-sm font-medium"
+              >
+                Nombre
+              </label>
+              <input
+                id="edit-first-name"
+                required
+                maxLength={100}
+                value={editFirstName}
+                onChange={(event) => setEditFirstName(event.target.value)}
+                className="w-full rounded-md border bg-white px-3 py-2"
+                placeholder="Nombre"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label
+                htmlFor="edit-last-name"
+                className="text-sm font-medium"
+              >
+                Apellido
+              </label>
+              <input
+                id="edit-last-name"
+                required
+                maxLength={100}
+                value={editLastName}
+                onChange={(event) => setEditLastName(event.target.value)}
+                className="w-full rounded-md border bg-white px-3 py-2"
+                placeholder="Apellido"
+              />
+            </div>
+
+            <div className="space-y-1 md:col-span-2">
+              <label htmlFor="edit-group" className="text-sm font-medium">
+                Grupo
+              </label>
+              <select
+                id="edit-group"
+                value={editGroupId}
+                onChange={(event) => setEditGroupId(event.target.value)}
+                className="w-full rounded-md border bg-white px-3 py-2"
+              >
+                <option value="">Sin grupo</option>
+                {groups.map((group) => (
+                  <option key={group.id} value={group.id}>
+                    {group.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex flex-wrap gap-2 md:col-span-2">
+              <button
+                type="submit"
+                disabled={working}
+                className="rounded-md bg-black px-4 py-2 text-white disabled:opacity-50"
+              >
+                {working ? "Guardando..." : "Guardar cambios"}
+              </button>
+
+              <button
+                type="button"
+                onClick={cancelEditing}
+                disabled={working}
+                className="rounded-md border bg-white px-4 py-2 disabled:opacity-50"
+              >
+                Cancelar
+              </button>
+            </div>
+          </form>
+        </section>
       )}
 
-      {message && (
-        <p className="rounded-md bg-green-50 p-3 text-sm text-green-700">
-          {message}
-        </p>
-      )}
-
-      <section className="grid gap-6 md:grid-cols-2">
+      <section className="grid items-start gap-6 md:grid-cols-2">
         <form onSubmit={createGuest} className="space-y-4 rounded-xl border p-5">
           <h2 className="text-lg font-semibold">Agregar invitado</h2>
 
@@ -317,8 +619,9 @@ async function removeGuest(guest: Guest) {
             required
             maxLength={100}
             value={firstName}
-            onChange={(e) => setFirstName(e.target.value)}
+            onChange={(event) => setFirstName(event.target.value)}
             placeholder="Nombre"
+            aria-label="Nombre del invitado"
             className="w-full rounded-md border px-3 py-2"
           />
 
@@ -326,14 +629,16 @@ async function removeGuest(guest: Guest) {
             required
             maxLength={100}
             value={lastName}
-            onChange={(e) => setLastName(e.target.value)}
+            onChange={(event) => setLastName(event.target.value)}
             placeholder="Apellido"
+            aria-label="Apellido del invitado"
             className="w-full rounded-md border px-3 py-2"
           />
 
           <select
             value={groupId}
-            onChange={(e) => setGroupId(e.target.value)}
+            onChange={(event) => setGroupId(event.target.value)}
+            aria-label="Grupo del invitado"
             className="w-full rounded-md border px-3 py-2"
           >
             <option value="">Sin grupo</option>
@@ -345,61 +650,132 @@ async function removeGuest(guest: Guest) {
           </select>
 
           <button
+            type="submit"
             disabled={working}
             className="rounded-md bg-black px-4 py-2 text-white disabled:opacity-50"
           >
-            Crear invitado
+            {working ? "Procesando..." : "Crear invitado"}
           </button>
         </form>
 
-        <form onSubmit={createGroup} className="space-y-4 rounded-xl border p-5">
+        <section className="space-y-4 rounded-xl border p-5">
           <h2 className="text-lg font-semibold">Crear grupo</h2>
 
           <p className="text-sm text-gray-500">
             Por ejemplo: Familia Pérez o Amigos de Agus.
           </p>
-
+          
+          <form onSubmit={createGroup} className="space-y-4">
           <input
             required
             maxLength={100}
             value={groupName}
-            onChange={(e) => setGroupName(e.target.value)}
+            onChange={(event) => setGroupName(event.target.value)}
             placeholder="Nombre del grupo"
+            aria-label="Nombre del grupo"
             className="w-full rounded-md border px-3 py-2"
           />
 
           <button
+            type="submit"
             disabled={working}
             className="rounded-md border px-4 py-2 disabled:opacity-50"
           >
             Crear grupo
           </button>
-
-          <div className="flex flex-wrap gap-2">
-            {groups.map((group) => (
-              <span key={group.id} className="rounded-full bg-gray-100 px-3 py-1 text-sm">
-                {group.name} ({group.guests?.length ?? 0})
-              </span>
-            ))}
-          </div>
         </form>
+            
+  <div className="max-h-75 space-y-3 overflow-y-auto pr-2">
+  {groups.map((group) => (
+    <div key={group.id} className="rounded-lg border p-3">
+      {editingGroupId === group.id ? (
+        <form onSubmit={saveGroup} className="flex flex-wrap gap-2">
+          <input
+            autoFocus
+            required
+            maxLength={100}
+            value={editGroupName}
+            onChange={(event) => setEditGroupName(event.target.value)}
+            aria-label="Nombre del grupo"
+            className="min-w-0 flex-1 rounded-md border px-3 py-2"
+          />
+
+          <button
+            type="submit"
+            disabled={working}
+            className="rounded-md bg-black px-3 py-2 text-white disabled:opacity-50"
+          >
+            Guardar
+          </button>
+
+          <button
+            type="button"
+            onClick={cancelEditingGroup}
+            disabled={working}
+            className="rounded-md border px-3 py-2 disabled:opacity-50"
+          >
+            Cancelar
+          </button>
+        </form>
+      ) : (
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="font-medium">{group.name}</p>
+            <p className="text-xs text-gray-500">
+              {group.guests?.length ?? 0} invitado(s)
+            </p>
+          </div>
+
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => startEditingGroup(group)}
+              disabled={working}
+              className="rounded-md border px-3 py-1.5 disabled:opacity-50"
+            >
+              Editar
+            </button>
+
+            <button
+              type="button"
+              onClick={() => void removeGroup(group)}
+              disabled={working}
+              className="rounded-md border border-red-300 px-3 py-1.5 text-red-700 disabled:opacity-50"
+            >
+              Eliminar
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  ))}
+
+  {groups.length === 0 && (
+    <p className="text-sm text-gray-500">
+      Todavía no hay grupos creados.
+    </p>
+  )}
+</div>
+
+        </section>
       </section>
 
       <section className="space-y-4 rounded-xl border p-5">
-        <h2 className="text-lg font-semibold">Importar desde Excel</h2>
-
-        <p className="text-sm text-gray-500">
-          Columnas requeridas: Grupo, Nombre y Apellido. Dejá Grupo vacío
-          si el invitado no pertenece a ningún grupo.
-        </p>
+        <div>
+          <h2 className="text-lg font-semibold">Importar desde Excel</h2>
+          <p className="mt-2 text-sm text-gray-500">
+            Columnas requeridas: Grupo, Nombre y Apellido. Dejá Grupo vacío
+            si el invitado no pertenece a ningún grupo.
+          </p>
+        </div>
 
         <div className="flex flex-wrap items-center gap-3">
           <input
             id="excel-file"
             type="file"
             accept=".xlsx,.xls"
-            onChange={(e) => {
-              setFile(e.target.files?.[0] ?? null);
+            onChange={(event) => {
+              setFile(event.target.files?.[0] ?? null);
               setPreview(null);
             }}
             className="block max-w-full text-sm"
@@ -418,7 +794,9 @@ async function removeGuest(guest: Guest) {
         {preview && (
           <div className="space-y-4">
             <div className="flex flex-wrap gap-4 text-sm">
-              <span>Total: <strong>{preview.total}</strong></span>
+              <span>
+                Total: <strong>{preview.total}</strong>
+              </span>
               <span className="text-green-700">
                 Válidos: <strong>{preview.valid}</strong>
               </span>
@@ -435,7 +813,6 @@ async function removeGuest(guest: Guest) {
                     <th className="p-3">Invitado</th>
                     <th className="p-3">Grupo</th>
                     <th className="p-3">Resultado</th>
-                    
                   </tr>
                 </thead>
                 <tbody>
@@ -448,7 +825,11 @@ async function removeGuest(guest: Guest) {
                           : "—"}
                       </td>
                       <td className="p-3">{row.data?.Grupo || "Sin grupo"}</td>
-                      <td className={`p-3 ${row.error ? "text-red-700" : "text-green-700"}`}>
+                      <td
+                        className={`p-3 ${
+                          row.error ? "text-red-700" : "text-green-700"
+                        }`}
+                      >
                         {row.error || "Correcto"}
                       </td>
                     </tr>
@@ -463,7 +844,7 @@ async function removeGuest(guest: Guest) {
               disabled={working || preview.valid === 0 || preview.invalid > 0}
               className="rounded-md bg-black px-4 py-2 text-white disabled:opacity-50"
             >
-              Confirmar importación
+              {working ? "Importando..." : "Confirmar importación"}
             </button>
 
             {preview.invalid > 0 && (
@@ -483,8 +864,9 @@ async function removeGuest(guest: Guest) {
 
           <input
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(event) => setSearch(event.target.value)}
             placeholder="Buscar por nombre o grupo..."
+            aria-label="Buscar invitados"
             className="w-full rounded-md border px-3 py-2 sm:max-w-xs"
           />
         </div>
@@ -499,13 +881,16 @@ async function removeGuest(guest: Guest) {
                 <th className="p-3">Acciones</th>
               </tr>
             </thead>
+
             <tbody>
               {filteredGuests.map((guest) => (
                 <tr key={guest.id} className="border-t">
                   <td className="p-3 font-medium">
                     {guest.firstName} {guest.lastName}
                   </td>
+
                   <td className="p-3">{guest.group?.name ?? "Sin grupo"}</td>
+
                   <td className="p-3">
                     {guest.rsvp?.status === "ATTENDING"
                       ? "Asiste"
@@ -513,23 +898,37 @@ async function removeGuest(guest: Guest) {
                         ? "No asiste"
                         : "Pendiente"}
                   </td>
+
                   <td className="p-3">
-                    <button
-                      type="button"
-                      onClick={() => void removeGuest(guest)}
-                      disabled={working}
-                      className="rounded-md border border-red-300 px-3 py-1.5 text-red-700 hover:bg-red-50 disabled:opacity-50"
-                    >
-                      Eliminar
-                    </button>
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        onClick={() => startEditing(guest)}
+                        disabled={working}
+                        className="rounded-md border px-3 py-1.5 hover:bg-gray-50 disabled:opacity-50"
+                      >
+                        Editar
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => void removeGuest(guest)}
+                        disabled={working}
+                        className="rounded-md border border-red-300 px-3 py-1.5 text-red-700 hover:bg-red-50 disabled:opacity-50"
+                      >
+                        Eliminar
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
 
               {filteredGuests.length === 0 && (
                 <tr>
-                  <td colSpan={3} className="p-6 text-center text-gray-500">
-                    No hay invitados para mostrar.
+                  <td colSpan={4} className="p-6 text-center text-gray-500">
+                    {search
+                      ? "No encontramos invitados con esa búsqueda."
+                      : "Todavía no hay invitados cargados."}
                   </td>
                 </tr>
               )}

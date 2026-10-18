@@ -135,14 +135,14 @@ export function MicrosBotanicalEditorial({ slug }: Props) {
         <div
           className="absolute top-16 left-1/2 -translate-x-1/2 mx-auto -mt-2 flex w-[65%] max-w-md flex-col items-center px-6 md:absolute md:top-[40%] md:left-1/2 md:-translate-x-1/2 md:px-0">
           <p
-            className="max-w-xs text-center font-altivo text-[0.55rem] leading-tight md:max-w-xl md:w-xl md:text-lg">
+            className="max-w-xs text-center font-altivo text-base leading-tight md:max-w-xl md:w-xl md:text-lg">
             Dispondremos de viajes en combi ida y vuelta para que solo te
             preocupes por el outfit!
           </p>
 
           {/* Paradas */}
           <div
-            className="mt-2 flex items-center w-full justify-center gap-2 font-script text-xs md:mt-7 md:gap-12 md:text-xl">
+            className="mt-2 flex items-center w-full justify-center gap-2 font-script text-base md:mt-7 md:gap-12 md:text-xl">
             <label className="flex cursor-pointer items-center gap-2">
               <input
                 type="radio"
@@ -174,7 +174,7 @@ export function MicrosBotanicalEditorial({ slug }: Props) {
               value={fullName}
               onChange={(event) => setFullName(event.target.value)}
               placeholder="Nombre completo"
-              className="h-7 w-4/5 mx-auto rounded-full border-0 bg-(--design-01-primary) px-5 font-script text-sm text-(--design-01-white) outline-none placeholder:text-(--design-01-white) md:h-12 md:px-8 md:text-xl"
+              className="h-7 w-4/5 mx-auto rounded-full border-0 bg-(--design-01-primary) px-5 font-script text-base text-(--design-01-white) outline-none placeholder:text-(--design-01-white) md:h-12 md:px-8 md:text-xl"
             />
 
             <input
@@ -182,7 +182,7 @@ export function MicrosBotanicalEditorial({ slug }: Props) {
               value={phone}
               onChange={(event) => setPhone(event.target.value)}
               placeholder="Teléfono"
-              className="h-7 w-4/5 mx-auto rounded-full border-0 bg-(--design-01-primary) px-5 font-script text-sm text-(--design-01-white) outline-none placeholder:text-(--design-01-white) md:h-12 md:px-8 md:text-xl" />
+              className="h-7 w-4/5 mx-auto rounded-full border-0 bg-(--design-01-primary) px-5 font-script text-base text-(--design-01-white) outline-none placeholder:text-(--design-01-white) md:h-12 md:px-8 md:text-xl" />
           </div>
 
           {/* Botón */}

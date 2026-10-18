@@ -166,7 +166,7 @@ async function submit() {
             items-center
             gap-1.5
             font-script
-            text-sm
+            text-base
             md:gap-2
             md:text-xl
           "
@@ -199,7 +199,7 @@ async function submit() {
             items-center
             gap-1.5
             font-script
-            text-sm
+            text-base
             md:gap-2
             md:text-xl
           "
@@ -254,7 +254,7 @@ async function submit() {
             bg-(--design-01-primary)
             px-5
             font-script
-            text-sm
+            text-base
             text-(--design-01-white)
             outline-none
             placeholder:text-(--design-01-white)
@@ -277,7 +277,7 @@ async function submit() {
             bg-(--design-01-primary)
             px-5
             font-script
-            text-sm
+            text-base
             text-(--design-01-white)
             outline-none
             placeholder:text-(--design-01-white)
@@ -300,7 +300,7 @@ async function submit() {
           px-8
           py-1
           font-script
-          text-sm
+          text-base
           text-(--design-01-white)
           transition-opacity
           disabled:opacity-50

@@ -10,6 +10,8 @@ export function PreweddingPhotoBotanicalEditorial() {
         width={1200}
         height={900}
         className="hidden h-auto w-1/2 mx-auto md:block px-24"
+        loading="eager"
+
       />
 
       <Image
@@ -18,6 +20,7 @@ export function PreweddingPhotoBotanicalEditorial() {
         width={650}
         height={900}
         className="block h-auto w-full md:hidden"
+        loading="eager"
       />
     </section>
   );

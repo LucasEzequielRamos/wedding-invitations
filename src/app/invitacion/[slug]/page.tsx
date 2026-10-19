@@ -1,10 +1,9 @@
+
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { getPublicInvitation } from "@/features/invitations/services/get-public-invitation";
 import { InvitationSectionRenderer } from "@/features/invitations/components/invitation-section-renderer";
-
-const siteUrl = "https://invitacionesberacah.vercel.app";
 
 type Props = {
   params: Promise<{ slug: string }>;
@@ -23,33 +22,46 @@ export async function generateMetadata({
   }
 
   const title = `${invitation.name} | Invitación de boda`;
- const date = invitation.weddingDate
-  ? new Intl.DateTimeFormat("es-AR", {
-      dateStyle: "long",
-      timeZone: "UTC",
-    }).format(invitation.weddingDate)
-  : null;
 
-const description = date
-  ? `Te invitamos a celebrar nuestra boda. ${invitation.name} · ${date}. Conocé todos los detalles de este día especial.`
-  : `Te invitamos a celebrar nuestra boda. ${invitation.name}. Conocé todos los detalles de este día especial.`;
+  const date = invitation.weddingDate
+    ? new Intl.DateTimeFormat("es-AR", {
+        dateStyle: "long",
+        timeZone: "UTC",
+      }).format(invitation.weddingDate)
+    : null;
+
+  const description = date
+    ? `Te invitamos a celebrar nuestra boda. ${invitation.name} · ${date}. Conocé todos los detalles de este día especial.`
+    : `Te invitamos a celebrar nuestra boda. ${invitation.name}. Conocé todos los detalles de este día especial.`;
+
+  const url = `/invitacion/${encodeURIComponent(slug)}`;
 
   return {
     title,
     description,
+
     openGraph: {
       type: "website",
       locale: "es_AR",
       siteName: "Invitaciones Beracah",
       title,
       description,
-      url: `${siteUrl}/invitacion/${encodeURIComponent(slug)}`,
-      // Agregaremos la imagen cuando subas el logo.
+      url,
+      images: [
+        {
+          url: "/images/beracah-og.png",
+          width: 1200,
+          height: 630,
+          alt: "Invitaciones Beracah",
+        },
+      ],
     },
+
     twitter: {
       card: "summary_large_image",
       title,
       description,
+      images: ["/images/beracah-og.png"],
     },
   };
 }

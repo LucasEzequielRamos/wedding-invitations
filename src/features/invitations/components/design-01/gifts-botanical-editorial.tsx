@@ -50,6 +50,12 @@ export function GiftsBotanicalEditorial({ gifts }: Props) {
   );
 
   const [copyMessage, setCopyMessage] = useState("");
+  const [openAccount, setOpenAccount] = useState<string | null>(null);
+
+  const accounts = [
+    { key: "pesos", label: "Datos en pesos", items: visibleGifts.slice(0, 2) },
+    { key: "dolares", label: "Datos en dólares", items: visibleGifts.slice(2, 4) },
+  ];
 
   return (
     <section className="w-full overflow-hidden bg-(--design-01-background) text-(--design-01-dark)">
@@ -85,31 +91,54 @@ export function GiftsBotanicalEditorial({ gifts }: Props) {
 
         {/* Datos */}
         <div
-          className=" mt-5 flex flex-col gap-3 font-altivo text-[0.5rem] md:mt-7 md:gap-4 md:text-sm">
-          {visibleGifts.map((gift) => ( <div
-              key={gift.id}
-              className="flex items-center gap-2"
-            >
-              <button onClick={() =>{
-                setCopyMessage("Copiado al portapapeles");
-                              setTimeout(() => {
-                setCopyMessage("");
-              }, 2000);
-                 navigator.clipboard.writeText(gift.description || "")}}>
-                <CopyIcon />
-              </button>
+          className=" mt-5 flex w-72 flex-col gap-3 font-altivo text-[0.5rem] md:mt-7 md:w-96 md:gap-4 md:text-sm">
+          {accounts.map((account) => {
+            const isOpen = openAccount === account.key;
 
+            return (
+              <div key={account.key} className="flex flex-col gap-3 md:gap-4">
+                <button
+                  onClick={() => setOpenAccount(isOpen ? null : account.key)}
+                  className="flex w-full items-center justify-between  pb-1"
+                >
+                  <span className="text-sm md:text-lg">{account.label}</span>
 
+                  <span
+                    className={`font-altivo flex h-3 w-3
+                  md:h-6 md:w-6 items-center justify-center rounded-full 
+                 transition-transform duration-200
+                  md:text-lg ${isOpen ? "rotate-180" : ""}`}
+                  >
+                    <svg width="26" height="17" viewBox="0 0 26 17" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M1.5 1.5L13 14.5L24.5 1.5" strokeWidth="3" strokeLinecap="round" stroke="#283517"/>
+                    </svg>
+                  </span>
+                </button>
 
+                {isOpen &&
+                  account.items.map((gift) => (
+                    <div
+                      key={gift.id}
+                      className="flex items-center gap-2"
+                    >
+                      <button onClick={() =>{
+                        setCopyMessage("Copiado al portapapeles");
+                                      setTimeout(() => {
+                        setCopyMessage("");
+                      }, 2000);
+                         navigator.clipboard.writeText(gift.description || "")}}>
+                        <CopyIcon />
+                      </button>
 
-
-
-              <span className="text-sm md:text-lg">
-                <span className="text-sm md:text-lg">{gift.name}:</span>{" "}
-                {gift.description}
-              </span>
-            </div>
-          ))}
+                      <span className="text-sm md:text-lg">
+                        <span className="text-sm md:text-lg">{gift.name}:</span>{" "}
+                        {gift.description}
+                      </span>
+                    </div>
+                  ))}
+              </div>
+            );
+          })}
         </div>
 
         <div className="mt-2 h-4 md:mt-3 md:h-5 (--design-01-dark)"> 

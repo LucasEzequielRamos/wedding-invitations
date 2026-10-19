@@ -1,3 +1,4 @@
+
 import type { Metadata } from "next";
 import { La_Belle_Aurore } from "next/font/google";
 
@@ -11,8 +12,12 @@ const laBelleAurore = La_Belle_Aurore({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://invitacionesberacah.vercel.app"),
   title: "Invitaciones de boda",
   description: "Invitaciones de boda personalizadas",
+  icons: {
+    icon: "/favicon.png",
+  },
 };
 
 export default function RootLayout({
@@ -23,7 +28,10 @@ export default function RootLayout({
   return (
     <html lang="es" className={laBelleAurore.variable}>
       <head>
-        <link rel="stylesheet" href="https://use.typekit.net/wan0tuq.css" />
+        <link
+          rel="stylesheet"
+          href="https://use.typekit.net/wan0tuq.css"
+        />
       </head>
 
       <body>{children}</body>

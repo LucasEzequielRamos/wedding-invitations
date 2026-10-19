@@ -15,7 +15,8 @@ export function MicrosBotanicalEditorial({ slug }: Props) {
   const [phone, setPhone] = useState("");
   const [needsBus, setNeedsBus] = useState(false);
   const [busStopId, setBusStopId] = useState<string | null>(null);
-    const { toast, showToast, dismissToast } = useToast();
+  const [loading, setLoading] = useState(false);
+  const { toast, showToast, dismissToast } = useToast();
   
 
 
@@ -38,6 +39,7 @@ export function MicrosBotanicalEditorial({ slug }: Props) {
       return;
     }
 
+    setLoading(true);
     setNeedsBus(true);
 
     const lookupResponse = await fetch(`/api/invitacion/${slug}/rsvp`, {
@@ -105,6 +107,8 @@ export function MicrosBotanicalEditorial({ slug }: Props) {
     setBusStopId(null);
   } catch {
     showToast("Ocurrió un error. Intentá nuevamente.");
+  } finally{
+    setLoading(false);
   }
 }
 
@@ -133,16 +137,16 @@ export function MicrosBotanicalEditorial({ slug }: Props) {
 
         {/* Formulario */}
         <div
-          className="absolute top-16 left-1/2 -translate-x-1/2 mx-auto -mt-2 flex w-[65%] max-w-md flex-col items-center px-6 md:absolute md:top-[40%] md:left-1/2 md:-translate-x-1/2 md:px-0">
+          className="absolute top-16 left-1/2 -translate-x-1/2 mx-auto -mt-2 flex w-[70%] max-w-md flex-col items-center px-6 md:absolute md:top-[40%] md:left-1/2 md:-translate-x-1/2 md:px-0">
           <p
-            className="max-w-xs text-center font-altivo text-xs leading-tight md:max-w-xl md:w-xl md:text-lg">
+            className="max-w-xs text-center font-altivo  text-xs leading-tight md:max-w-xl md:w-xl md:text-lg">
             Dispondremos de viajes en combi ida y vuelta para que solo te
             preocupes por el outfit!
           </p>
 
           {/* Paradas */}
           <div
-            className="mt-2 flex items-center w-full justify-center gap-2 font-script text-xs md:mt-7 md:gap-12 md:text-xl">
+            className="mt-6 flex items-center w-full justify-center gap-2 font-script text-sm md:mt-7 md:gap-12 md:text-xl">
             <label className="flex cursor-pointer items-center gap-2">
               <input
                 type="radio"
@@ -189,8 +193,9 @@ export function MicrosBotanicalEditorial({ slug }: Props) {
           <button
             type="button"
             onClick={submit}
+            disabled={loading}
             className="mt-4 rounded-full bg-(--design-01-dark) px-8 py-2 font-script text-sm text-(--design-01-white) md:mt-6 md:px-12 md:py-3 md:text-xl">
-            Confirmar Viaje
+           {loading ? "Confirmando..." : "Confirmar Viaje"}
           </button>
 
           {/* Texto inferior */}

@@ -13,10 +13,35 @@ const laBelleAurore = La_Belle_Aurore({
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://invitacionesberacah.vercel.app"),
-  title: "Invitaciones de boda",
-  description: "Invitaciones de boda personalizadas",
+  title: "Beracah Studio | Invitaciones & Papelería",
+  description: "Invitaciones de boda y papelería personalizada.",
+
   icons: {
-    icon: "/favicon.png",
+    icon: "/images/og-beracah.png",
+  },
+
+  openGraph: {
+    type: "website",
+    locale: "es_AR",
+    siteName: "Beracah Studio",
+    title: "Beracah Studio | Invitaciones & Papelería",
+    description: "Invitaciones de boda y papelería personalizada.",
+    url: "/",
+    images: [
+      {
+        url: "/images/og-beracah.png", 
+        width: 1200,
+        height: 630,
+        alt: "Beracah Studio",
+      },
+    ],
+  },
+
+  twitter: {
+    card: "summary_large_image",
+    title: "Beracah Studio | Invitaciones & Papelería",
+    description: "Invitaciones de boda y papelería personalizada.",
+    images: ["/images/og-beracah.png"],
   },
 };
 

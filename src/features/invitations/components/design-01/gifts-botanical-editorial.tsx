@@ -184,7 +184,7 @@ export function GiftsBotanicalEditorial({ gifts }: Props) {
             aria-hidden="true"
             width={1138}
             height={725}
-            className="hidden max-h-[600px] w-4/5 md:block"
+            className="hidden max-h-150 w-4/5 md:block"
           />
         </div>
       </div>

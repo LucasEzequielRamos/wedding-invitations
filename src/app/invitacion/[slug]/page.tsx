@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 
 import { getPublicInvitation } from "@/features/invitations/services/get-public-invitation";
 import { InvitationSectionRenderer } from "@/features/invitations/components/invitation-section-renderer";
+import { getPublicMediaUrl } from "@/features/media/utils/get-public-media-url";
 
 type Props = {
   params: Promise<{ slug: string }>;
@@ -14,6 +15,7 @@ export async function generateMetadata({
 }: Props): Promise<Metadata> {
   const { slug } = await params;
   const invitation = await getPublicInvitation(slug);
+
 
   if (!invitation) {
     return {
@@ -36,34 +38,42 @@ export async function generateMetadata({
 
   const url = `/invitacion/${encodeURIComponent(slug)}`;
 
+  const cover = invitation.media?.[0];
+  const ogImage = cover?.path
+  ? getPublicMediaUrl(cover.path)
+  : "/images/og-beracah.png";
+  const ogWidth = cover?.path ? (cover.width ?? 1200) : 1200;
+  const ogHeight = cover?.path ? (cover.height ?? 630) : 630;
+
+
   return {
+  title,
+  description,
+
+  openGraph: {
+    type: "website",
+    locale: "es_AR",
+    siteName: "Beracah Studio",
     title,
     description,
+    url,
+    images: [
+      {
+        url: ogImage,
+        width: ogWidth,
+        height:ogHeight,
+        alt: invitation.name,
+      },
+    ],
+  },
 
-    openGraph: {
-      type: "website",
-      locale: "es_AR",
-      siteName: "Invitaciones Beracah",
-      title,
-      description,
-      url,
-      images: [
-        {
-          url: "/images/beracah-og.png",
-          width: 1200,
-          height: 630,
-          alt: "Invitaciones Beracah",
-        },
-      ],
-    },
-
-    twitter: {
-      card: "summary_large_image",
-      title,
-      description,
-      images: ["/images/beracah-og.png"],
-    },
-  };
+  twitter: {
+    card: "summary_large_image",
+    title,
+    description,
+    images: [ogImage],
+  },
+};
 }
 
 export default async function InvitationPage({ params }: Props) {

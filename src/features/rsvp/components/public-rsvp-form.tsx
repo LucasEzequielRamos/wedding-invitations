@@ -331,7 +331,7 @@ async function submit() {
       >
         Recordá llenar el formulario por persona,
         <br />
-        tenés tiempo hasta el 30/12
+        tenés tiempo hasta el 16/12
       </p>
 </div>
     </div>

@@ -207,7 +207,7 @@ export function MicrosBotanicalEditorial({ slug }: Props) {
             </p>
 
             <p className="mt-4 font-medium md:mt-6">
-              PODES LLENAR EL FORMULARIO HASTA EL 30/12
+              PODES LLENAR EL FORMULARIO HASTA EL 16/12
             </p>
           </div>
         </div>

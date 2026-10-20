@@ -1,3 +1,4 @@
+
 import type { FaqConfig } from "../../schemas/faq.schema";
 
 type Props = {
@@ -15,32 +16,57 @@ export function FaqBotanicalEditorial({ config }: Props) {
         )}
 
         <div className="flex flex-col gap-4 md:gap-6">
-          {config.items.map((item, index) => (
-            <details
-              key={`${item.question}-${index}`}
-              className="group border-b border-(--design-01-primary)/30 pb-4 md:pb-6"
-            >
-              <summary className="cursor-pointer list-none font-script text-base md:text-3xl">
-                <div className="flex items-center justify-between gap-4">
-                  <span>{item.question}</span>
+          {config.items.map((item, index) => {
+            const parts = item.answer.split(/(\(enviar wpp\))/gi);
 
-                  <span className="font-altivo  flex h-4 w-4
-                  md:h-6 md:w-6 items-center justify-center rounded-full 
-                 transition-transform duration-200
-                  group-open:rotate-180 md:text-lg">
-                 <svg width="26" height="17" viewBox="0 0 26 17" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M1.5 1.5L13 14.5L24.5 1.5" strokeWidth="3" strokeLinecap="round" stroke="#283517"/>
-                </svg>
+            return (
+              <details
+                key={`${item.question}-${index}`}
+                className="group border-b border-(--design-01-primary)/30 pb-4 md:pb-6"
+              >
+                <summary className="cursor-pointer list-none font-script text-base md:text-3xl">
+                  <div className="flex items-center justify-between gap-4">
+                    <span>{item.question}</span>
 
-                  </span>
-                </div>
-              </summary>
+                    <span className="flex h-4 w-4 items-center justify-center rounded-full transition-transform duration-200 group-open:rotate-180 md:h-6 md:w-6">
+                      <svg
+                        width="26"
+                        height="17"
+                        viewBox="0 0 26 17"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M1.5 1.5L13 14.5L24.5 1.5"
+                          strokeWidth="3"
+                          strokeLinecap="round"
+                          stroke="#283517"
+                        />
+                      </svg>
+                    </span>
+                  </div>
+                </summary>
 
-              <p className="mt-3 pr-6 font-altivo text-[0.7rem] leading-relaxed md:mt-4 md:text-xl">
-                {item.answer}
-              </p>
-            </details>
-          ))}
+                <p className="mt-3 pr-6 font-altivo text-[0.7rem] leading-relaxed md:mt-4 md:text-xl">
+                  {parts.map((part, partIndex) =>
+                    /^\(enviar wpp\)$/i.test(part) ? (
+                      <a
+                        key={partIndex}
+                        href="https://wa.me/5491124039779"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="relative z-10 my-2 flex items-center justify-center w-fit mx-auto rounded-full border-2 border-(--design-01-primary) bg-(--design-01-primary) px-2 py-1 font-altivo text-xs uppercase tracking-[0.08em] text-(--design-01-white) md:text-2xl"
+                      >
+                        ENVIAR MENSAJE
+                      </a>
+                    ) : (
+                      <span key={partIndex}>{part}</span>
+                    )
+                  )}
+                </p>
+              </details>
+            );
+          })}
         </div>
       </div>
     </section>

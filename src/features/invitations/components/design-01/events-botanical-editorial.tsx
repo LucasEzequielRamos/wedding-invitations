@@ -59,13 +59,13 @@ export function EventsBotanicalEditorial({ events }: Props) {
             </h2>
 
             {/* Hora */}
-            <p className="mt-4 font-script text-lg md:text-4xl">
+            <p className="mt-2 font-script text-lg md:text-4xl">
               {formatTime(event.date)}hs
             </p>
 
             {/* Ubicación */}
             {event.location && (
-              <p className="mt-4 px-6 font-altivo text-base md:text-lg">
+              <p className="mt-3 px-6 font-altivo text-base md:text-lg">
                 {event.location}
               </p>
             )}
@@ -78,7 +78,7 @@ export function EventsBotanicalEditorial({ events }: Props) {
 
             {/* Navegación */}
             {event.mapsUrl && (
-              <div className="relative mt-8 flex w-full min-h-24   flex-col items-center px-6 md:mt-10">
+              <div className="relative mt-3 flex w-full min-h-24   flex-col items-center px-6 md:mt-10">
                 {/* Flecha mobile */}
                 <div className="flex md:hidden  absolute bottom-0 left-1/2 -translate-x-24 translate-y-5">
                   <Image

@@ -4,7 +4,6 @@ import { notFound } from "next/navigation";
 
 import { getPublicInvitation } from "@/features/invitations/services/get-public-invitation";
 import { InvitationSectionRenderer } from "@/features/invitations/components/invitation-section-renderer";
-import { getPublicMediaUrl } from "@/features/media/utils/get-public-media-url";
 
 type Props = {
   params: Promise<{ slug: string }>;
@@ -38,12 +37,6 @@ export async function generateMetadata({
 
   const url = `/invitacion/${encodeURIComponent(slug)}`;
 
-  const cover = invitation.media?.[0];
-  const ogImage = cover?.path
-  ? getPublicMediaUrl(cover.path)
-  : "/images/og-beracah.png";
-  const ogWidth = cover?.path ? (cover.width ?? 1200) : 1200;
-  const ogHeight = cover?.path ? (cover.height ?? 630) : 630;
 
 
   return {
@@ -57,21 +50,12 @@ export async function generateMetadata({
     title,
     description,
     url,
-    images: [
-      {
-        url: ogImage,
-        width: ogWidth,
-        height:ogHeight,
-        alt: invitation.name,
-      },
-    ],
   },
 
   twitter: {
     card: "summary_large_image",
     title,
     description,
-    images: [ogImage],
   },
 };
 }

@@ -1,6 +1,7 @@
 import { getWeddingGuestsWithRsvp } from "@/features/guests/services/get-wedding-guests-with-rsvp";
 import { getWeddingRsvpStats } from "@/features/rsvp/services/get-wedding-rsvp-stats";
 import { RsvpGuestList } from "@/features/rsvp/components/rsvp-guest-list";
+import Link from "next/link";
 
 type PageProps = {
   params: Promise<{
@@ -18,6 +19,12 @@ export default async function WeddingRsvpPage({ params }: PageProps) {
 
   return (
     <main className="p-6">
+       <Link
+            href={`/dashboard/weddings/${id}`}
+            className="text-sm text-gray-500 hover:text-black"
+          >
+            ← Volver a mi boda
+          </Link>
       <h1 className="text-3xl font-bold">Confirmaciones</h1>
 
       <div className="mt-6 grid grid-cols-2 gap-4 md:grid-cols-4">

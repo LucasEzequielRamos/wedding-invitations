@@ -258,7 +258,9 @@ export function RsvpGuestList({ guests }: Props) {
         </div>
       </div>
 
-      <div className="overflow-x-auto rounded-xl border">
+     
+      {/* Desktop: tabla actual */}
+      <div className="hidden overflow-x-auto rounded-xl border md:block">
         <table className="w-full text-left text-sm">
           <thead className="bg-gray-50 text-gray-600">
             <tr>
@@ -291,19 +293,15 @@ export function RsvpGuestList({ guests }: Props) {
                 <td className="whitespace-nowrap p-3 font-medium">
                   {guest.firstName} {guest.lastName}
                 </td>
-
                 <td className="p-3">{guest.group?.name ?? "—"}</td>
-
                 <td className="p-3">
                   <StatusBadge status={guest.rsvp?.status ?? "PENDING"} />
                 </td>
-
                 <td className="whitespace-nowrap p-3">
                   {guest.rsvp?.respondedAt
                     ? new Date(guest.rsvp.respondedAt).toLocaleDateString("es-AR")
                     : "—"}
                 </td>
-
                 <td className="p-3">
                   {guest.rsvp?.needsBus ? (
                     <span className="font-medium text-green-700">Sí</span>
@@ -311,13 +309,11 @@ export function RsvpGuestList({ guests }: Props) {
                     "No"
                   )}
                 </td>
-
                 <td className="p-3">
                   {guest.rsvp?.needsBus
                     ? guest.rsvp.busStop?.name ?? "Sin parada"
                     : "—"}
                 </td>
-
                 <td className="whitespace-nowrap p-3">
                   {guest.rsvp?.needsBus
                     ? guest.rsvp.busPhone ?? "Sin teléfono"
@@ -334,7 +330,6 @@ export function RsvpGuestList({ guests }: Props) {
                       ? "Todavía no hay invitados cargados."
                       : "No encontramos invitados con esos filtros."}
                   </p>
-
                   {guests.length > 0 && hasFilters && (
                     <button
                       type="button"
@@ -350,6 +345,86 @@ export function RsvpGuestList({ guests }: Props) {
           </tbody>
         </table>
       </div>
+
+      {/* Mobile: tarjetas, sin scroll horizontal */}
+      <div className="space-y-3 md:hidden">
+        {filteredGuests.map((guest) => {
+          const guestStatus = guest.rsvp?.status ?? "PENDING";
+          const needsBus = guest.rsvp?.needsBus ?? false;
+
+          return (
+            <button
+              key={guest.id}
+              type="button"
+              onClick={() => setSelectedGuest(guest)}
+              aria-label={`Ver respuestas de ${guest.firstName} ${guest.lastName}`}
+              className="w-full min-w-0 rounded-xl border bg-white p-4 text-left transition-colors hover:bg-gray-50 active:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-500"
+            >
+              <div className="flex min-w-0 items-start justify-between gap-3">
+                <div className="min-w-0 flex-1">
+                  <p className="break-words font-semibold text-gray-900">
+                    {guest.firstName} {guest.lastName}
+                  </p>
+                  <p className="mt-1 truncate text-sm text-gray-500">
+                    {guest.group?.name ?? "Sin grupo"}
+                  </p>
+                </div>
+
+                <div className="shrink-0">
+                  <StatusBadge status={guestStatus} />
+                </div>
+              </div>
+
+              <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 border-t pt-3 text-sm text-gray-600">
+                <span>
+                  {guest.rsvp?.respondedAt
+                    ? new Date(guest.rsvp.respondedAt).toLocaleDateString("es-AR")
+                    : "Sin respuesta"}
+                </span>
+
+                <span aria-hidden="true" className="text-gray-300">
+                  ·
+                </span>
+
+                <span className={needsBus ? "font-medium text-green-700" : ""}>
+                  {needsBus ? "Solicitó micro" : "Sin micro"}
+                </span>
+              </div>
+
+              {needsBus && (
+                <p className="mt-2 truncate text-sm text-gray-500">
+                  Parada: {guest.rsvp?.busStop?.name ?? "Sin parada asignada"}
+                </p>
+              )}
+
+              <div className="mt-3 flex items-center justify-end gap-1 text-sm font-medium text-gray-500">
+                Ver detalle <span aria-hidden="true">→</span>
+              </div>
+            </button>
+          );
+        })}
+
+        {filteredGuests.length === 0 && (
+          <div className="rounded-xl border p-8 text-center">
+            <p className="font-medium">
+              {guests.length === 0
+                ? "Todavía no hay invitados cargados."
+                : "No encontramos invitados con esos filtros."}
+            </p>
+
+            {guests.length > 0 && hasFilters && (
+              <button
+                type="button"
+                onClick={resetFilters}
+                className="mt-3 text-sm underline"
+              >
+                Limpiar filtros
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+
 
       {selectedGuest && (
         <div

@@ -67,7 +67,7 @@ export default async function WeddingDashboardPage({
       <div className="mb-8">
         <div className="mb-2">
           <Link
-            href="/dashboard/weddings"
+            href="/dashboard"
             className="text-sm text-gray-500 hover:text-black"
           >
             ← Volver a mis bodas

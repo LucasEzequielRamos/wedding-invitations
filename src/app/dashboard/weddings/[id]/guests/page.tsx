@@ -5,6 +5,7 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { useParams } from "next/navigation";
 import { ToastViewport, useToast } from "@/components/ui/toast";
+import Link from "next/link";
 
 type Group = {
   id: string;
@@ -549,6 +550,12 @@ const filteredGuests = guests.filter((guest) =>
 
   return (
     <main className="mx-auto max-w-6xl space-y-8 p-6">
+      <Link
+            href={`/dashboard/weddings/${weddingId}`}
+            className="text-sm text-gray-500 hover:text-black"
+          >
+            ← Volver a mi boda
+          </Link>
       <ToastViewport toast={toast} onClose={dismissToast} />
 
       {confirmation && (
@@ -995,7 +1002,9 @@ const filteredGuests = guests.filter((guest) =>
           />
         </div>
 
-        <div className="overflow-x-auto rounded-xl border">
+        
+        {/* Desktop: tabla */}
+        <div className="hidden overflow-hidden rounded-xl border md:block">
           <table className="w-full text-left text-sm">
             <thead className="bg-gray-50">
               <tr>
@@ -1012,9 +1021,9 @@ const filteredGuests = guests.filter((guest) =>
                   <td className="p-3 font-medium">
                     {guest.firstName} {guest.lastName}
                   </td>
-
-                  <td className="p-3">{guest.group?.name ?? "Sin grupo"}</td>
-
+                  <td className="p-3">
+                    {guest.group?.name ?? "Sin grupo"}
+                  </td>
                   <td className="p-3">
                     {guest.rsvp?.status === "ATTENDING"
                       ? "Asiste"
@@ -1022,7 +1031,6 @@ const filteredGuests = guests.filter((guest) =>
                         ? "No asiste"
                         : "Pendiente"}
                   </td>
-
                   <td className="p-3">
                     <div className="flex flex-wrap gap-2">
                       <button
@@ -1033,7 +1041,6 @@ const filteredGuests = guests.filter((guest) =>
                       >
                         Editar
                       </button>
-
                       <button
                         type="button"
                         onClick={() => askRemoveGuest(guest)}
@@ -1059,6 +1066,79 @@ const filteredGuests = guests.filter((guest) =>
             </tbody>
           </table>
         </div>
+
+        {/* Mobile: lista compacta */}
+        <div className="divide-y rounded-xl border md:hidden">
+          {filteredGuests.map((guest) => {
+            const status = guest.rsvp?.status;
+            const statusLabel =
+              status === "ATTENDING"
+                ? "Asiste"
+                : status === "NOT_ATTENDING"
+                  ? "No asiste"
+                  : "Pendiente";
+
+            const statusStyle =
+              status === "ATTENDING"
+                ? "bg-green-50 text-green-700"
+                : status === "NOT_ATTENDING"
+                  ? "bg-red-50 text-red-700"
+                  : "bg-amber-50 text-amber-700";
+
+            return (
+              <div
+                key={guest.id}
+                className="min-w-0 space-y-3 bg-white p-4"
+              >
+                <div className="flex min-w-0 items-start justify-between gap-3">
+                  <div className="min-w-0 flex-1">
+                    <p className="break-words font-semibold text-gray-900">
+                      {guest.firstName} {guest.lastName}
+                    </p>
+                    <p className="mt-1 break-words text-sm text-gray-500">
+                      {guest.group?.name ?? "Sin grupo"}
+                    </p>
+                  </div>
+
+                  <span
+                    className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-medium ${statusStyle}`}
+                  >
+                    {statusLabel}
+                  </span>
+                </div>
+
+                <div className="flex flex-wrap gap-2 border-t pt-3">
+                  <button
+                    type="button"
+                    onClick={() => startEditing(guest)}
+                    disabled={working}
+                    className="min-h-10 rounded-lg border px-4 py-2 text-sm font-medium hover:bg-gray-50 disabled:opacity-50"
+                  >
+                    Editar
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => askRemoveGuest(guest)}
+                    disabled={working}
+                    className="min-h-10 rounded-lg border border-red-200 px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-50 disabled:opacity-50"
+                  >
+                    Eliminar
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+
+          {filteredGuests.length === 0 && (
+            <div className="p-6 text-center text-sm text-gray-500">
+              {search
+                ? "No encontramos invitados con esa búsqueda."
+                : "Todavía no hay invitados cargados."}
+            </div>
+          )}
+        </div>
+
       </section>
     </main>
   );

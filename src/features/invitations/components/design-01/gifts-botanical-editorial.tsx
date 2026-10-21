@@ -82,11 +82,7 @@ export function GiftsBotanicalEditorial({ gifts }: Props) {
         {/* Texto */}
         <p
           className=" mt-2 max-w-86 text-center font-altivo text-xs leading-tight md:mt-3 md:max-w-2xl md:text-xl">
-          Nuestro mayor deseo es poder compartir este día tan
-          <br className="hidden md:block" />
-          especial con ustedes, pero si desean hacernos un regalo
-          <br className="hidden md:block" />
-          pueden hacerlo de la siguiente manera:
+          Nuestro mayor deseo es poder disfrutar de este gran día junto a vos, pero si deseas hacernos un regalo agradecemos enormemente tu gesto!
         </p>
 
         {/* Datos */}

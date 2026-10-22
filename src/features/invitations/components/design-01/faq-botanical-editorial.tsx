@@ -52,7 +52,7 @@ export function FaqBotanicalEditorial({ config }: Props) {
                     /^\(enviar wpp\)$/i.test(part) ? (
                       <a
                         key={partIndex}
-                        href="https://wa.me/5491124039779"
+                        href={`https://wa.me/${process.env.PLANNER_NUM}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="relative z-10 my-2 flex items-center justify-center w-fit mx-auto rounded-full border-2 border-(--design-01-primary) bg-(--design-01-primary) px-2 py-1 font-altivo text-xs uppercase tracking-[0.08em] text-(--design-01-white) md:text-2xl"
